@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact
+namespace AscentCreative\Transact;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
@@ -13,8 +13,7 @@ class TransactServiceProvider extends ServiceProvider
     //
 
     // Register the helpers php file which includes convenience functions:
-    require_once (__DIR__.'/helpers.php');
-   
+    
     $this->mergeConfigFrom(
         __DIR__.'/../config/transact.php', 'transact'
     );
