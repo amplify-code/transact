@@ -29,6 +29,8 @@ class TransactServiceProvider extends ServiceProvider
 
     $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
+    $this->bootComponents();
+
     
   }
 
@@ -36,6 +38,8 @@ class TransactServiceProvider extends ServiceProvider
 
   // register the components
   public function bootComponents() {
+
+        Blade::component('transact-stripe-ui', 'AscentCreative\Transact\Components\StripeUI');
 
   }
 
@@ -47,7 +51,7 @@ class TransactServiceProvider extends ServiceProvider
     public function bootPublishes() {
 
       $this->publishes([
-        __DIR__.'/Assets' => public_path('vendor/ascentcreative/transact'),
+        __DIR__.'/../assets' => public_path('vendor/ascentcreative/transact'),
     
       ], 'public');
 

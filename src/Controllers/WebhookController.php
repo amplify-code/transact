@@ -44,7 +44,7 @@ class WebhookController extends Controller
             // callback to Stripe to get fees / amounts
             try {
 
-                $secret = config('checkout.stripe_secret_key');
+                $secret = config('transact.stripe_secret_key');
   
                 $stripe = new \Stripe\StripeClient(
                     $secret

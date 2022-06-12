@@ -15,7 +15,7 @@ use Carbon\Carbon;
 /**
  * A model to represent a confirmed order.
  */
-class Transaction extends Base
+class Transaction extends Model
 {
     use HasFactory;
     
@@ -78,10 +78,16 @@ class Transaction extends Base
             $this->data = $data;
             $this->paid_at = new \Carbon\Carbon();
 
-            return $this->save();
+            $this->save();
+
+            $this->transactable->onPaymentConfirmed();
+
+            return true;
 
             // fire off a call to the transactable model so they can perform the required logic.
             // - Is this a method call? or an event?
+
+           
 
         } else {
             return false;
