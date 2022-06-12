@@ -53,7 +53,7 @@ class TransactServiceProvider extends ServiceProvider
     public function bootPublishes() {
 
       $this->publishes([
-        __DIR__.'/../assets' => public_path('vendor/ascentcreative/transact'),
+        __DIR__.'/../assets' => public_path('vendor/ascent/transact'),
     
       ], 'public');
 
