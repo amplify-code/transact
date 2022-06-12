@@ -31,6 +31,8 @@ class TransactServiceProvider extends ServiceProvider
 
     $this->bootComponents();
 
+    $this->bootPublishes();
+
     
   }
 
