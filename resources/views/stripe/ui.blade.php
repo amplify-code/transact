@@ -88,7 +88,7 @@
     <div id="card-errors" class="p-2"></div>
 
     <div class="text-center">
-        <button id="stripe-submit" class="button btn btn-primary">Pay now</button>
+        <button id="stripe-submit" class="button btn btn-primary">{{ $buttonText }}</button>
     </div> 
 
     <div class="small p-2 mt-3 text-center">

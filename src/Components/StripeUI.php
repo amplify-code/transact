@@ -9,16 +9,19 @@ class StripeUI extends Component
 
 
     public $id = '';
+    public $buttonText;
 
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct($id="stripe-ui")
+    public function __construct($id="stripe-ui", $buttonText="Pay Now")
     {
         //
         $this->id = $id;
+        $this->buttonText = $buttonText;
+        
     }
 
     /**
