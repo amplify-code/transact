@@ -26,6 +26,8 @@ class CreateTransactionTable extends Migration
                 $table->string('transactable_type')->index();
                 $table->integer('transactable_id')->index();
                 $table->float('amount');
+                $table->float('fees');
+                $table->float('nett');
                 $table->longtext('data');
                 $table->timestamps();
             });
