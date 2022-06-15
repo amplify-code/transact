@@ -5,9 +5,9 @@ namespace AscentCreative\Transact\Contracts;
 interface iTransactable {
 
 
-    public function getAmount():float;
+    public function getTransactionAmount():float;
 
 
-    public function onPaymentConfirmed();
+    public function onTransactionComplete();
 
 }

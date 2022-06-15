@@ -80,7 +80,7 @@ class Transaction extends Model
 
             $this->save();
 
-            $this->transactable->onPaymentConfirmed();
+            $this->transactable->onTransactionComplete();
 
             return true;
 
