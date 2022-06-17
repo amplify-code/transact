@@ -6,13 +6,7 @@ var StripeUI = {
     stripe: null,
     elements: null,
     card: null,
-    style: {
-        base: {
-            backgroundColor: "#ffffff",
-            padding: '10px',
-            fontFamily: 'Montserrat, sans-serif'
-        }
-    },
+    // style: null,
     
     _init: function () {
         
@@ -24,9 +18,13 @@ var StripeUI = {
         // alert('Stripe Checkout: ' + this.options.key);
 
         this.stripe = Stripe(this.options.key);
-        this.elements = this.stripe.elements();
+        this.elements = this.stripe.elements({
+            fonts: [
+                { cssSrc: this.options.cssSrc }
+            ]
+        });
 
-        this.card = this.elements.create("card", { style: this.style });
+        this.card = this.elements.create("card", { style: this.options.style });
         this.card.mount("#card-element");
 
         this.card.on('change', ({error}) => {

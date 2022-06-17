@@ -5,7 +5,9 @@
     <SCRIPT>
         $(document).ready(function() {
             $('#{{ $id }}').stripeui({
-                key: '{{ config('transact.stripe_public_key') }}'
+                key: '{{ config('transact.stripe_public_key') }}',
+                cssSrc: '{{ $cssSrc }}',
+                style: {!! json_encode($style) !!}
             });
         });
     </SCRIPT>
