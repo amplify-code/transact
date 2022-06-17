@@ -37,6 +37,9 @@ class Transact {
              ]
         ]);
 
+        $t->reference = $intent->id;
+        $t->save();
+
 
        return $intent;
 

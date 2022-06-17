@@ -141,6 +141,15 @@ class Transaction extends Model
 
         return $t;
     }
+
+    public function getStatusAttribute() {
+
+        if (!is_null($this->paid_at)) {
+            return 'paid';
+        }
+        
+        return 'unpaid'; 
+    }
    
 
 }

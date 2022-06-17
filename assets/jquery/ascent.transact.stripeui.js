@@ -75,7 +75,33 @@ var StripeUI = {
                             // This could issue an event for the hosting page/package to respond to
                             // (i.e. by navigating to a new page)
                             // window.location = '/basket/complete';
-                            $(document).trigger('transact-success');
+                            // $(document).trigger('transact-success');
+
+                            // as we're using a payment spinner modal,
+                            // let's keep that in place, and poll the server to see if the 
+                            // transaction has completed via the webhook.
+                            window.setInterval(function() { 
+                                $.ajax({       
+                                    type: 'GET',
+                                    url: '/transact/poll-reference/' + result.paymentIntent.id,
+                                    headers: {
+                                        'Accept' : "application/json"
+                                    }
+                                }).done(function(data, xhr, request) {
+                                    // resolve('force-fail');
+                                    // console.log(data);
+                                    if(data == 'paid') {
+                                        $(document).trigger('transact-success');
+                                    }
+                                }).fail(function(data) {
+                                   alert(data);
+                                });
+
+                            }, 250);
+
+
+
+
 
                             // Show a success message to your customer
                             // There's a risk of the customer closing the window before callback
