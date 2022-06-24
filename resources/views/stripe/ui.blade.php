@@ -95,7 +95,7 @@
 
     <div class="small p-2 mt-3 text-center">
         <p><a href="https://stripe.com" target="_blank"><img src="/vendor/ascent/transact/img/stripe.svg" height="20" width="auto" alt="Powered by STRIPE" border="0"/></a></p>
-        Your card details will be processed by Stripe. {{ config('app.name')}} will not have access to your full payment details.
+        <p>Your card details will be processed by Stripe.<br/>{{ config('app.name')}} will not have access to your full payment details.</p>
     </div>
 
     <x-cms-modal modalid="paymentspinner" centered="true" :showHeader="false" :showFooter="false" :closeButton="false" size="modal-sm">
