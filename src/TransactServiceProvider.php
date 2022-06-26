@@ -58,7 +58,7 @@ class TransactServiceProvider extends ServiceProvider
       ], 'public');
 
       $this->publishes([
-        __DIR__.'/config/usersettings.php' => config_path('transact.php'),
+        __DIR__.'/config/transact.php' => config_path('transact.php'),
       ]);
 
     }
