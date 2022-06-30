@@ -46,4 +46,8 @@ class Transact {
     }
 
 
+    // subscribe - starts a subscription, returning the intent for the first invoice.
+    
+
+
 }
