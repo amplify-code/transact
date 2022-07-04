@@ -71,6 +71,7 @@ var StripeUI = {
                         if (result.paymentIntent.status === 'succeeded') {
 
                             console.log(result);
+                            console.log(widget);
 
                             // This could issue an event for the hosting page/package to respond to
                             // (i.e. by navigating to a new page)
@@ -80,28 +81,8 @@ var StripeUI = {
                             // as we're using a payment spinner modal,
                             // let's keep that in place, and poll the server to see if the 
                             // transaction has completed via the webhook.
-                            window.setInterval(function() { 
-                                $.ajax({       
-                                    type: 'GET',
-                                    url: '/transact/poll-reference/' + result.paymentIntent.id,
-                                    headers: {
-                                        'Accept' : "application/json"
-                                    }
-                                }).done(function(data, xhr, request) {
-                                    // resolve('force-fail');
-                                    // console.log(data);
-                                    if(data == 'paid') {
-                                        $(document).trigger('transact-success');
-                                    }
-                                }).fail(function(data) {
-                                   alert(data);
-                                });
-
-                            }, 250);
-
-
-
-
+                            widget.pollStatus(result.paymentIntent.id);
+                            
 
                             // Show a success message to your customer
                             // There's a risk of the customer closing the window before callback
@@ -139,6 +120,34 @@ var StripeUI = {
 
     setStartFunction: function(fn) {
         this.startFunction = fn;
+    },
+
+    pollStatus: function(id) {
+
+        console.log('polling...');
+
+        let widget = this;
+        
+        $.ajax({     
+            type: 'GET',
+            url: '/transact/poll-reference/' + id,
+            headers: {
+                'Accept' : "application/json"
+            }
+        }).done(function(data, xhr, request) {
+            // resolve('force-fail');
+            console.log(data);
+            if(data == 'paid') {
+                $(document).trigger('transact-success');
+            } else {
+               widget.pollStatus(id);
+            }
+        }).fail(function(data) {
+            alert(data);
+        });
+
+      
+
     }
 
 
