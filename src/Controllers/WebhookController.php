@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 
+use Illuminate\Support\Facades\Log;
+
 // use AscentCreative\Checkout\Models\Basket;
 // use AscentCreative\Checkout\Models\Order;
 use AscentCreative\Transact\Models\Transaction;
@@ -31,10 +33,11 @@ class WebhookController extends Controller
         $event = json_decode($webhookContent);
         // process the event:
          
-
         if($event->type == 'payment_intent.succeeded') {
 
-            
+            Log::debug(print_r($event, true));
+
+           
             // get the basket id from the posted data
             $meta = $event->data->object->metadata;
 
@@ -58,8 +61,20 @@ class WebhookController extends Controller
                 $amount = $bt->amount / 100;
                 $fees = $bt->fee / 100;
                 $nett = $bt->net / 100;
-  
-  
+
+
+                if($event->data->object->invoice) {
+                    $inv = $stripe->invoices->retrieve(
+                        $event->data->object->invoice,
+                        []
+                    );
+                    Log::debug(print_r($inv, true));
+                    Log::debug($inv->lines->data[0]->metadata->transaction_id);
+                    $transaction_id = $inv->lines->data[0]->metadata->transaction_id;
+                } else {
+                    $transaction_id = $meta->transaction_id;
+                }
+    
               } catch (Exception $e) {
                 throw new WebhookException('Error requesting Stripe data: ' . $e->getMessage());
                 //   \Log::error($e->getMessage());
@@ -68,10 +83,9 @@ class WebhookController extends Controller
             $reference = $event->data->object->id;
             
             // rather than getting the basket, get the Transaction record.
-            $t = Transaction::getUnpaidForUUID($meta->transaction_id, $reference);
+            $t = Transaction::getUnpaidForUUID($transaction_id, $reference);
             
             $t->markPaid($amount, $fees, $reference, $webhookContent);
-
 
         }
 
