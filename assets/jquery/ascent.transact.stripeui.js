@@ -37,10 +37,14 @@ var StripeUI = {
         });
 
         let widget = this;
-        $(this.element).on('click', '#stripe-submit', function() {
+        $(this.element).on('click', '#stripe-submit', function(e) {
 
-            
+            e.preventDefault();
             $('#paymentspinner').modal('show');
+
+        });
+
+        $('#paymentspinner').on('shown.bs.modal', function (e) {
 
             let promise = new Promise(widget.startFunction);
             
@@ -97,17 +101,16 @@ var StripeUI = {
                 // alert(e);
                 // }
             }, 
-            function(error) { 
+            function(error) {
                 $('#paymentspinner').modal('hide');
-                alert(error);
-            }).then(
-                function(result) {},
-                function(error) {
-                    $('#paymentspinner').modal('hide');
-                    alert(error);
-                }
+                widget.failFunction(error);
+            });
             
-            );;
+            
+            // .then(
+            //     function(result) {},
+            //     widget.onFail
+            // );
             
         });
         
@@ -117,10 +120,27 @@ var StripeUI = {
         reject(new Error('Start Promise has not been defined'));
     },
     
-
     setStartFunction: function(fn) {
         this.startFunction = fn;
     },
+
+    failFunction: function(error) {
+        alert('fail');
+        alert(error);
+    },
+
+    setFailFunction: function(fn) {
+        this.failFunction = fn;
+    },
+
+    // onFail: function(error) {
+        
+    //     console.log(this);
+    //     this.failFunction(error);
+    // },
+
+   
+
 
     pollStatus: function(id) {
 
@@ -138,6 +158,7 @@ var StripeUI = {
             // resolve('force-fail');
             console.log(data);
             if(data == 'paid') {
+                $('#paymentspinner').modal('hide');
                 $(document).trigger('transact-success');
             } else {
                widget.pollStatus(id);
