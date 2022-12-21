@@ -100,7 +100,7 @@
 
     <x-cms-modal modalid="paymentspinner" centered="true" :showHeader="false" :showFooter="false" :closeButton="false" size="modal-sm">
 
-        <x-slot name="title">Exporting</x-slot>
+        <x-slot name="title">Processing</x-slot>
     
         <div class="spinner"></div>
     

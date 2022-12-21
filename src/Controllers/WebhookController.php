@@ -35,9 +35,6 @@ class WebhookController extends Controller
          
         if($event->type == 'payment_intent.succeeded') {
 
-            Log::debug(print_r($event, true));
-
-           
             // get the basket id from the posted data
             $meta = $event->data->object->metadata;
 
@@ -68,8 +65,8 @@ class WebhookController extends Controller
                         $event->data->object->invoice,
                         []
                     );
-                    Log::debug(print_r($inv, true));
-                    Log::debug($inv->lines->data[0]->metadata->transaction_id);
+                    // Log::debug(print_r($inv, true));
+                    // Log::debug($inv->lines->data[0]->metadata->transaction_id);
                     $transaction_id = $inv->lines->data[0]->metadata->transaction_id;
                 } else {
                     $transaction_id = $meta->transaction_id;

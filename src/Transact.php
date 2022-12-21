@@ -13,8 +13,8 @@ class Transact {
     static function start(iTransactable $model) {
 
         // does a transaction already exist?
-
-       $t = Transaction::firstOrCreate([
+        
+       $t = Transaction::create([
             'transactable_type' => get_class($model),
             'transactable_id' => $model->id
        ]);

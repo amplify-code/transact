@@ -24,7 +24,7 @@ class Transaction extends Model
     */
     public $table = "transact_transactions"; 
    
-    public $fillable = ['transactable_type', 'transactable_id', 'provider', 'reference', 'paid_at', 'is_recurring', 'uuid', 'amount', 'data'];
+    public $fillable = ['transactable_type', 'transactable_id', 'provider', 'reference', 'paid_at', 'is_recurring', 'uuid', 'amount', 'data', 'failed', 'failure_reason'];
 
 
     protected static function booted() {

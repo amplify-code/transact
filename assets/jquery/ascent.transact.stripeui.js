@@ -6,6 +6,7 @@ var StripeUI = {
     stripe: null,
     elements: null,
     card: null,
+    intent: null,
     // style: null,
     
     _init: function () {
@@ -40,7 +41,12 @@ var StripeUI = {
         $(this.element).on('click', '#stripe-submit', function(e) {
 
             e.preventDefault();
-            $('#paymentspinner').modal('show');
+            $('#paymentspinner')
+                .modal({
+                    backdrop: 'static',
+                    keyboard: false
+                })
+                .modal('show');
 
         });
 
@@ -50,6 +56,7 @@ var StripeUI = {
             
             promise.then(function(result) {
 
+                    widget.intent = result;
                 // try {
                     widget.stripe.confirmCardPayment(result.client_secret, {  
                         payment_method: {
@@ -61,26 +68,20 @@ var StripeUI = {
                         }
                                 
                     }).then(function(result) {
+
                         if (result.error) {
                         // Show error to your customer (e.g., insufficient funds)
-                            $('#paymentspinner').modal('hide');
-                            console.log(result.error.message);
-
+                           
                             // This could issue an event for the hosting page/package to respond to
                             // (i.e. might need to clean up the transation? Maybe we also set a 'failed' flag?)
-                            
+                            // widget.markFailed();
+                            widget.failFunction(result.error.message);
+
+
 
                         } else {
                         // The payment has been processed!
                         if (result.paymentIntent.status === 'succeeded') {
-
-                            console.log(result);
-                            console.log(widget);
-
-                            // This could issue an event for the hosting page/package to respond to
-                            // (i.e. by navigating to a new page)
-                            // window.location = '/basket/complete';
-                            // $(document).trigger('transact-success');
 
                             // as we're using a payment spinner modal,
                             // let's keep that in place, and poll the server to see if the 
@@ -93,6 +94,7 @@ var StripeUI = {
                             // execution. Set up a webhook or plugin to listen for the
                             // payment_intent.succeeded event that handles any business critical
                             // post-payment actions.
+                            
                         }
                         }
                     });
@@ -102,9 +104,9 @@ var StripeUI = {
                 // }
             }, 
             function(error) {
-                $('#paymentspinner').modal('hide');
                 widget.failFunction(error);
-            });
+            })
+               
             
             
             // .then(
@@ -125,8 +127,29 @@ var StripeUI = {
     },
 
     failFunction: function(error) {
-        alert('fail');
-        alert(error);
+        // alert('fail');
+        // alert(error);
+
+        // populate an error message on the UI.
+
+        // post the failure to the transact table.
+        $.ajax({     
+            type: 'POST',
+            url: '/transact/fail',
+            data: {
+                '_token': $('meta[name="csrf-token"]').attr('content'),
+                reference: this.intent.id,
+                message: error
+            },
+            headers: {
+                'Accept' : "application/json"
+            }
+        }).done(function(data, xhr, request) {      
+            $('#paymentspinner').modal('hide');
+        }).fail(function(data) {
+            $('#paymentspinner').modal('hide');
+        });
+    
     },
 
     setFailFunction: function(fn) {
@@ -155,10 +178,13 @@ var StripeUI = {
                 'Accept' : "application/json"
             }
         }).done(function(data, xhr, request) {
-            // resolve('force-fail');
+            // This could issue an event for the hosting page/package to respond to
+            // (i.e. by navigating to a new page)
+            // window.location = '/basket/complete';
+            // $(document).trigger('transact-success');
             console.log(data);
             if(data == 'paid') {
-                $('#paymentspinner').modal('hide');
+                // $('#paymentspinner').modal('hide');
                 $(document).trigger('transact-success');
             } else {
                widget.pollStatus(id);

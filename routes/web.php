@@ -12,8 +12,19 @@ Route::middleware(['web'])->group(function() {
     Route::get('/transact/poll-reference/{transaction:reference}', function(AscentCreative\Transact\Models\Transaction $transaction) {
         return $transaction->status;
     });
-});
 
+    Route::post('/transact/fail', function() {
+
+        $data = request()->all();
+
+        $trans = \AscentCreative\Transact\Models\Transaction::where('reference', $data['reference'])->first();
+        $trans->failed = 1;
+        $trans->failure_reason = $data['message'];
+        $trans->save();
+
+        // return $transaction->setFailed();
+    });
+});
 
 
 
