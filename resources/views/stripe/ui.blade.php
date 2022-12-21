@@ -17,6 +17,8 @@
 
 @push('styles')
 
+    @style('/vendor/ascent/transact/jquery/ascent.transact.stripeui.css')
+
 <style>
 
     /** spinner **/
@@ -87,7 +89,7 @@
     <div id="card-element" class="stripe-card-wrap form-control sborder srounded sp-2 pt-2 mt-3 ">
     </div>
     
-    <div id="card-errors" class="p-2"></div>
+    <div id="card-errors" class="card-errors p-2"></div>
 
     <div class="text-center">
         <button id="stripe-submit" class="button btn btn-primary">{{ $buttonText }}</button>

@@ -94,7 +94,7 @@ var StripeUI = {
                             // execution. Set up a webhook or plugin to listen for the
                             // payment_intent.succeeded event that handles any business critical
                             // post-payment actions.
-                            
+
                         }
                         }
                     });
@@ -131,6 +131,7 @@ var StripeUI = {
         // alert(error);
 
         // populate an error message on the UI.
+        $('#card-errors').html(error);
 
         // post the failure to the transact table.
         $.ajax({     
