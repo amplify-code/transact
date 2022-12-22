@@ -33,7 +33,7 @@ class Transact {
         // dd($model->getTransactionAmount());
 
         $intent = $stripe->paymentIntents->create([
-            'amount' => $model->getTransactionAmount() * 100,
+            'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
             'currency' => 'gbp',
              'metadata' => [
                  'transaction_id' => $t->uuid
