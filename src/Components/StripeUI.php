@@ -15,13 +15,14 @@ class StripeUI extends Component
 
     // the style array as defined at https://stripe.com/docs/js/appendix/style
     // will be JSON encoded and passed to the javascript code when initialising the UI
-    public $style = [
-       'base' => [
-            'backgroundColor' => "#ffffff",
-            'padding' => '10px',
-            'fontFamily' => 'Montserrat, sans-serif'
-       ]
-    ];
+    public $style = [];
+    // = [
+    //    'base' => [
+    //         'backgroundColor' => "#ffffff",
+    //         'padding' => '10px',
+    //         'fontFamily' => 'Montserrat, sans-serif'
+    //    ]
+    // ];
 
     /**
      * Create a new component instance.
@@ -34,11 +35,19 @@ class StripeUI extends Component
         $this->id = $id;
         $this->buttonText = $buttonText;
 
-        $this->cssSrc = $cssSrc;
-        
-        if(!is_null($style)) {
-            $this->style = $style;
+        if($cssSrc) {
+            $this->cssSrc = $cssSrc;
+        } else {
+            $this->cssSrc = config('transact.cssSrc');
         }
+        
+        $styleCollection = collect(config('transact.style'));
+
+
+        if(!is_null($style)) {
+           $styleCollection = $styleCollection->merge($style);
+        }
+        $this->style = $styleCollection->toArray();
         
     }
 

@@ -106,12 +106,12 @@ var StripeUI = {
             function(error) {
                 widget.failFunction(error);
             })
-               
-            
             
             // .then(
             //     function(result) {},
-            //     widget.onFail
+            //     function(error) {
+            //         widget.failFunction(error);
+            //     }
             // );
             
         });
