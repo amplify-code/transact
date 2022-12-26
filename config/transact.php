@@ -9,13 +9,16 @@ return [
     'stripe_public_key' => env('STRIPE_PUBLIC', 'public_key'),
     'stripe_secret_key' => env('STRIPE_SECRET', 'secret_key'),
 
+    /**
+     * Styling defaults
+     */
     'cssSrc' => '',
     'style' => [
         'base' => 
             [
                 'backgroundColor' => "#ffffff",
                 'padding' => '10px',
-                'fontFamily' => 'Montserrat, sans-serif'
+                // 'fontFamily' => 'Montserrat, sans-serif'
             ]
     ]
     
