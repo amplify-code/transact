@@ -49,6 +49,12 @@ class WebhookController extends Controller
                 $stripe = new \Stripe\StripeClient(
                     $secret
                      );
+
+                // Temporary Debug - New Stripe account is missing the 
+                // charges object required below.
+                //
+                // TODO: Remove after resolving with Stripe Support.
+                Log::debug(print_r($event->data->object, true));
   
                 $bt = $stripe->balanceTransactions->retrieve(
                   $event->data->object->charges->data[0]->balance_transaction,
