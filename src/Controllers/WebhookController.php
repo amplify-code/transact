@@ -14,6 +14,23 @@ use Illuminate\Support\Facades\Log;
 // use AscentCreative\Checkout\Models\Order;
 use AscentCreative\Transact\Models\Transaction;
 
+/**
+ * TODO: BIG ONE
+ * 
+ * Maybe this controller should just capture the data and store in the database
+ *  - Fire off an event, rather than trying to process it in this code, just in case of error?
+ * 
+ * But, there might be problems where a user is waiting for a payment confirmation in real time. 
+ *  - So do we save anything? If the event fails we still return an error...
+ *  - But, we could (should!) trap the error and fire a WebHook failed message
+ *  - If the event failed fully, we can at least re-run it in some way.
+ * 
+ * ----
+ * Better option - some stuff happens immediately - simple confirmation etc
+ *  - but then we fire off events to do what else is needed. 
+ *  - Like all the fee stuff below... farm that off for an event running later. It's not needed immediately.
+ * 
+ */
 class WebhookController extends Controller
 {
 
@@ -41,6 +58,7 @@ class WebhookController extends Controller
             $amount = 0;
             $fees = 0;
             $nett = 0;
+            
             // callback to Stripe to get fees / amounts
             try {
 
