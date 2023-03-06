@@ -95,9 +95,15 @@
         <button id="stripe-submit" class="button btn btn-primary">{{ $buttonText }}</button>
     </div> 
 
-    <div class="small p-2 mt-3 text-center">
-        <p><a href="https://stripe.com" target="_blank"><img src="/vendor/ascent/transact/img/stripe.svg" height="20" width="auto" alt="Powered by STRIPE" border="0"/></a></p>
-        <p>Your card details will be processed by Stripe.<br/>{{ config('app.name')}} will not have access to your full payment details.</p>
+    <div class="small pt-2 mt-3 text-center">
+        <p>
+            <a href="https://stripe.com" target="_blank"><img src="/vendor/ascent/transact/img/stripe.svg" height="20" width="auto" alt="Powered by STRIPE" border="0"/></a>
+        </p>
+        <p>
+            Your card details will be processed by Stripe.
+            {{-- <br/> --}}
+            <span style="white-space: nowrap">{{ config('app.name')}}</span> will not have access to your full payment details.
+        </p>
     </div>
 
     <x-cms-modal modalid="paymentspinner" centered="true" :showHeader="false" :showFooter="false" :closeButton="false" size="modal-sm">
