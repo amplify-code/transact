@@ -43,6 +43,8 @@ class TransactServiceProvider extends ServiceProvider
 
         Blade::component('transact-stripe-ui', 'AscentCreative\Transact\Components\StripeUI');
 
+        Blade::component('transact-stripe-elements', 'AscentCreative\Transact\Components\StripeElements');
+
   }
 
 
