@@ -50,7 +50,7 @@ class StripeElements extends Component
         $this->style = $styleCollection->toArray();
 
 
-        $intent = 
+        // $intent = 
         
     }
 
