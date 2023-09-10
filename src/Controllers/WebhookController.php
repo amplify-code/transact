@@ -68,16 +68,15 @@ class WebhookController extends Controller
                     $secret
                      );
 
-                // Temporary Debug - New Stripe account is missing the 
-                // charges object required below.
-                //
-                // TODO: Remove after resolving with Stripe Support.
-                Log::debug(print_r($event->data->object, true));
-  
-                $bt = $stripe->balanceTransactions->retrieve(
-                  $event->data->object->charges->data[0]->balance_transaction,
-                  []
+                // Change to get to fees - updated for latest API (but also bwd compat).
+                $charge = $stripe->charges->retrieve(
+                    $event->data->object->latest_charge
                 );
+
+                $bt = $stripe->balanceTransactions->retrieve(
+                    $charge->balance_transaction
+                );
+
   
                 $amount = $bt->amount / 100;
                 $fees = $bt->fee / 100;
@@ -89,7 +88,7 @@ class WebhookController extends Controller
                         $event->data->object->invoice,
                         []
                     );
-                    // Log::debug(print_r($inv, true));
+                    Log::debug(print_r($inv, true));
                     // Log::debug($inv->lines->data[0]->metadata->transaction_id);
                     $transaction_id = $inv->lines->data[0]->metadata->transaction_id;
                 } else {

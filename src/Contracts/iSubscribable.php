@@ -14,11 +14,18 @@ interface iSubscribable {
 
     public function getSubscriptionAmount():float;
 
+    public function getStripeProductId():string;
+
     public function getInterval():string;
     public function getIntervalCount():int;
+
+    public function getIterations():int;
 
     public function onSubscriptionComplete();
 
     public function onRecurringPayment();
+
+    public function getSubscriptionItems():array;
+    
 
 }

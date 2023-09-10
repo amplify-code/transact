@@ -70,47 +70,52 @@ class Transact {
             $secret
         );
 
-        $clock = $stripe->testHelpers->testClocks->create(
-            ['frozen_time' => Carbon::now()->timestamp, 'name' => 'Test Donation Clock']
-        );
+        // create a customer with optional test clock
+        $cust_payload = [
+            'email' => $model->getCustomerEmail(),
+            'name' => $model->getCustomerName(),
+        ];
+
+        if(config('transact.stripe_test_clocks')) {
+            $clock = $stripe->testHelpers->testClocks->create(
+                ['frozen_time' => Carbon::now()->timestamp, 'name' => 'Transact Test Clock']
+            );
+            $cust_payload['test_clock'] = $clock->id;
+        }
 
         $customer = $stripe->customers->create(
-            [
-              'email' => $model->getCustomerEmail(),
-              'test_clock' => $clock->id,
-              'name' => $model->getCustomerName(),
-            ]
+            $cust_payload
         );
 
-        // dump($customer);
 
         // - register the subscription
-        $subscription = $stripe->subscriptions->create([
+
+        // The iSubscribable should return subscription items array
+        // - could be a price identifier
+        // - coud be a price_data array for flexible items like user-specified donations.
+        $payload = [
             'customer' => $customer->id,
-            'items' => [[
-                'price_data' => [
-                    'product'=> 'prod_ME2EYepbapRMXI',
-                    'currency'=>'GBP',
-                    'recurring'=>[
-                        'interval'=>$model->getInterval(),
-                        'interval_count'=>$model->getIntervalCount()
-                    ],
-                    'unit_amount'=>$model->getSubscriptionAmount() * 100
-                    
-                ],
-                'metadata' => [
-                    'transaction_id' => $t->uuid
-                ]
-            ]],
+            'items' => [
+                $model->getSubscriptionItems(),
+            ],
             'metadata' => [
                 'transaction_id' => $t->uuid
             ],
             'payment_behavior' => 'default_incomplete',
             'payment_settings' => ['save_default_payment_method' => 'on_subscription'],
             'expand' => ['latest_invoice.payment_intent'],
-        ]);
+            'proration_behavior' => 'none',
+        ];
 
-        // dump($subscription);
+        // subscription schedules are problematic (must be set after payment)
+        // so we'll just use a cancelation date to mimic the iterations
+        // NB - this only works for simple subscriptions. 
+        // - We're going to need to be cleverer for free trials etc.
+        if($model->getIterations() > 0){
+            $payload['cancel_at'] = Transact::calculateEndDate($model);
+        }
+
+        $subscription = $stripe->subscriptions->create($payload);
 
 
         $intent = $subscription->latest_invoice->payment_intent;
@@ -119,8 +124,21 @@ class Transact {
         $t->save();
 
         // return the intent
-
         return $intent;
+
+    }
+
+    static function calculateEndDate($model) {
+
+        if($model->getIterations() > 0) {
+
+            $date = Carbon::now();
+            $date->add($model->getInterval(), $model->getIntervalCount() * $model->getIterations());
+            return $date->timestamp;
+
+        } else {
+            return null;
+        }
 
     }
 
