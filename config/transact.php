@@ -8,6 +8,7 @@ return [
     'payment_provider' => 'stripe',
     'stripe_public_key' => env('STRIPE_PUBLIC', 'public_key'),
     'stripe_secret_key' => env('STRIPE_SECRET', 'secret_key'),
+    'stripe_test_clocks' => env('STRIPE_TEST_CLOCKS', false),
 
     /**
      * Styling defaults
