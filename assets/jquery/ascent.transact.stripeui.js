@@ -133,13 +133,15 @@ var StripeUI = {
         // populate an error message on the UI.
         $('#card-errors').html(error);
 
+        $('#paymentspinner').modal('hide');
+
         // post the failure to the transact table.
         $.ajax({     
             type: 'POST',
             url: '/transact/fail',
             data: {
                 '_token': $('meta[name="csrf-token"]').attr('content'),
-                reference: this.intent.id,
+                reference: this.intent ? this.intent.id : '',
                 message: error
             },
             headers: {
@@ -156,14 +158,6 @@ var StripeUI = {
     setFailFunction: function(fn) {
         this.failFunction = fn;
     },
-
-    // onFail: function(error) {
-        
-    //     console.log(this);
-    //     this.failFunction(error);
-    // },
-
-   
 
 
     pollStatus: function(id) {
