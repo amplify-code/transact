@@ -58,6 +58,7 @@ class WebhookController extends Controller
             $amount = 0;
             $fees = 0;
             $nett = 0;
+            $paid_at = null;
             
             // callback to Stripe to get fees / amounts
             try {
@@ -91,6 +92,7 @@ class WebhookController extends Controller
                     Log::debug(print_r($inv, true));
                     // Log::debug($inv->lines->data[0]->metadata->transaction_id);
                     $transaction_id = $inv->lines->data[0]->metadata->transaction_id;
+                    $paid_at = $inv->status_transitions->paid_at;
                 } else {
                     $transaction_id = $meta->transaction_id;
                 }
@@ -105,7 +107,7 @@ class WebhookController extends Controller
             // rather than getting the basket, get the Transaction record.
             $t = Transaction::getUnpaidForUUID($transaction_id, $reference);
             
-            $t->markPaid($amount, $fees, $reference, $webhookContent);
+            $t->markPaid($amount, $fees, $reference, $webhookContent, $paid_at);
 
         }
 

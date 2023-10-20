@@ -26,6 +26,9 @@ class Transaction extends Model
    
     public $fillable = ['transactable_type', 'transactable_id', 'provider', 'reference', 'paid_at', 'is_recurring', 'uuid', 'amount', 'data', 'failed', 'failure_reason'];
 
+    public $casts = [
+        'paid_at' => 'datetime'
+    ];
 
     protected static function booted() {
 
@@ -68,7 +71,7 @@ class Transaction extends Model
      * 
      * @return [type]
      */
-    public function markPaid($amount, $fees, $reference, $data) {
+    public function markPaid($amount, $fees, $reference, $data, $paid_at=null) {
         if (!$this->is_paid) {
             
             $this->amount = $amount;
@@ -76,7 +79,8 @@ class Transaction extends Model
             $this->nett = $amount - $fees;
             $this->reference = $reference;
             $this->data = $data;
-            $this->paid_at = new \Carbon\Carbon();
+            
+            $this->paid_at = new \Carbon\Carbon($paid_at);
 
             $this->save();
 
