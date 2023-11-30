@@ -10,7 +10,7 @@ use Carbon\Carbon;
 
 class Transact {
 
-    static function start(iTransactable $model) {
+    static function start(iTransactable $model, $paymentMethod) {
 
         // does a transaction already exist?
         
@@ -29,12 +29,15 @@ class Transact {
            $secret
         );
 
-
-        // dd($model->getTransactionAmount());
-
         $intent = $stripe->paymentIntents->create([
             'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
             'currency' => 'gbp',
+            'confirm' => true,
+            'payment_method'=> $paymentMethod,
+            'automatic_payment_methods' => [
+                'enabled' => true,
+                'allow_redirects' => 'never',
+              ],
              'metadata' => [
                  'transaction_id' => $t->uuid
              ]
@@ -43,14 +46,98 @@ class Transact {
         $t->reference = $intent->id;
         $t->save();
 
-
-       return $intent;
+        return $intent;
 
     }
 
 
-    // subscribe - starts a subscription, returning the intent for the first invoice.
-    static function subscribe(iSubscribable $model) {
+    // subscribe - starts a subscription schedule, allowing free periods etc.
+    static function subscribe(iSubscribable $model, $paymentMethod) {
+
+        // find or create Transaction
+        $t = Transaction::firstOrCreate([
+            'transactable_type' => get_class($model),
+            'transactable_id' => $model->id
+        ], [
+            'is_recurring' => 1, 
+        ]);
+        $t->transactable()->associate($model);
+        $t->save();
+
+        // set up with Stripe:
+        // - register the customer
+        $secret = config('transact.stripe_secret_key');
+
+        $stripe = new \Stripe\StripeClient(
+            $secret
+        );
+
+        // create a customer with optional test clock
+        $cust_payload = [
+            'email' => $model->getCustomerEmail(),
+            'name' => $model->getCustomerName(),
+        ];
+
+        if(config('transact.stripe_test_clocks')) {
+            $clock = $stripe->testHelpers->testClocks->create(
+                ['frozen_time' => Carbon::now()->timestamp, 'name' => 'Transact Test Clock']
+            );
+            $cust_payload['test_clock'] = $clock->id;
+        }
+
+        $customer = $stripe->customers->create(
+            $cust_payload
+        );
+
+        $paymentMethod = request()->paymentMethod;
+
+        $stripe->paymentMethods->attach(
+            $paymentMethod,
+            [
+                'customer'=>$customer->id
+            ]
+        );
+
+        $stripe->customers->update(
+            $customer->id,
+            [
+                'invoice_settings' => [
+                    'default_payment_method'=> $paymentMethod
+                ]
+            ]
+        );
+
+
+        $phases = $model->getSubscriptionPhases();
+
+        // stamp transaction id into each phase metadata
+        foreach($phases as $idx=>$phase) {
+            $phases[$idx]['metadata']['transaction_id'] = $t->uuid;    
+        }
+        
+        $payload = [
+            'customer' => $customer->id,
+            'start_date' => \Carbon\Carbon::now()->timestamp,
+            'end_behavior' => 'release',
+            'phases'=> $phases,
+        ];
+
+        $sched = $stripe->subscriptionSchedules->create($payload);
+
+        $t->reference = $sched->id;
+        $t->save();
+
+        // dd($sched);
+
+        $model->onSubscriptionCreated($sched);
+
+        return $sched;
+
+    }
+
+
+    // old method, used a basic Stripe Subscription
+    static function subscribeOld(iSubscribable $model, $paymentMethod) {
 
         // find or create Transaction
         $t = Transaction::firstOrCreate([
@@ -87,6 +174,22 @@ class Transact {
             $cust_payload
         );
 
+        $stripe->paymentMethods->attach(
+            $paymentMethod,
+            [
+                'customer'=>$customer->id
+            ]
+        );
+
+        $stripe->customers->update(
+            $customer->id,
+            [
+                'invoice_settings' => [
+                    'default_payment_method'=> $paymentMethod
+                ]
+            ]
+        );
+
 
         // - register the subscription
 
@@ -105,6 +208,7 @@ class Transact {
             'payment_settings' => ['save_default_payment_method' => 'on_subscription'],
             'expand' => ['latest_invoice.payment_intent'],
             'proration_behavior' => 'none',
+            'trial_end'=>\Carbon\Carbon::createFromFormat('d/m/Y H:i:s',  '01/01/2024 00:00:00')->timestamp
         ];
 
         // subscription schedules are problematic (must be set after payment)
@@ -117,10 +221,10 @@ class Transact {
 
         $subscription = $stripe->subscriptions->create($payload);
 
-
         $intent = $subscription->latest_invoice->payment_intent;
-
-        $t->reference = $intent->id;
+        if($intent) {
+            $t->reference = $intent->id;
+        }
         $t->save();
 
         // return the intent

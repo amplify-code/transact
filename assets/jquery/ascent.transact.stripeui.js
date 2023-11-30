@@ -52,68 +52,52 @@ var StripeUI = {
 
         $('#paymentspinner').on('shown.bs.modal', function (e) {
 
-            let promise = new Promise(widget.startFunction);
-            
-            promise.then(function(result) {
 
-                    widget.intent = result;
-                // try {
-                    widget.stripe.confirmCardPayment(result.client_secret, {  
-                        payment_method: {
-                            card: widget.card,
-                            billing_details: {
-                                name: $('#cardholder').val(),
-                            }
-                    
-                        }
-                                
-                    }).then(function(result) {
+            widget.stripe
+                .createPaymentMethod({
+                    type: 'card',
+                    card: widget.card,
+                    billing_details: {
+                        name: $('#cardholder').val(),
+                    },
+                })
+                .then( function(result) {
 
-                        if (result.error) {
+                    if (result.error) {
                         // Show error to your customer (e.g., insufficient funds)
-                           
-                            // This could issue an event for the hosting page/package to respond to
-                            // (i.e. might need to clean up the transation? Maybe we also set a 'failed' flag?)
-                            // widget.markFailed();
-                            widget.failFunction(result.error.message);
+                        
+                        // This could issue an event for the hosting page/package to respond to
+                        // (i.e. might need to clean up the transation? Maybe we also set a 'failed' flag?)
+                        // widget.markFailed();
+                        widget.failFunction(result.error.message);
 
+                    } else {
+        
+                        // payment method was created ok.
+                        // Run the transact start function.
+                        // The result will either be a payment intent (with 'succeeded' status)
+                        // or a subscription_schedule
+                        // @TODO - is it possible to write a generic start function which auto detects the parent form and submits it?
+                        widget.startFunction(result)
+                            .then(function(data) {
+                               
+                                if(data.status == 'succeeded') {
+                                    $(document).trigger('transact-success');
+                                    // widget.pollStatus(data.id);
+                                }
 
+                                if(data.object == 'subscription_schedule') {
+                                    $(document).trigger('transact-success');
+                                }
+                                
+                            }, function(error) {
+                                widget.failFunction(error);
+                            });
 
-                        } else {
-                        // The payment has been processed!
-                        if (result.paymentIntent.status === 'succeeded') {
-
-                            // as we're using a payment spinner modal,
-                            // let's keep that in place, and poll the server to see if the 
-                            // transaction has completed via the webhook.
-                            widget.pollStatus(result.paymentIntent.id);
-                            
-
-                            // Show a success message to your customer
-                            // There's a risk of the customer closing the window before callback
-                            // execution. Set up a webhook or plugin to listen for the
-                            // payment_intent.succeeded event that handles any business critical
-                            // post-payment actions.
-
-                        }
-                        }
-                    });
-
-                // } catch(e) {
-                // alert(e);
-                // }
-            }, 
-            function(error) {
-                widget.failFunction(error);
-            })
-            
-            // .then(
-            //     function(result) {},
-            //     function(error) {
-            //         widget.failFunction(error);
-            //     }
-            // );
-            
+                    }
+                    
+                });
+           
         });
         
     },
@@ -127,8 +111,6 @@ var StripeUI = {
     },
 
     failFunction: function(error) {
-        // alert('fail');
-        // alert(error);
 
         // populate an error message on the UI.
         $('#card-errors').html(error);
@@ -159,7 +141,7 @@ var StripeUI = {
         this.failFunction = fn;
     },
 
-
+    // This may not be needed in this new version as we pre-confirm the paymentIntent during the server-side code
     pollStatus: function(id) {
 
         console.log('polling...');

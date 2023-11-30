@@ -2,6 +2,8 @@
 
 namespace AscentCreative\Transact\Contracts;
 
+use Stripe\SubscriptionSchedule;
+
 
 /**
  * Methods for recurring subscriptions
@@ -21,11 +23,13 @@ interface iSubscribable {
 
     public function getIterations():int;
 
-    public function onSubscriptionComplete();
+    public function onSubscriptionCreated(SubscriptionSchedule $sched);
 
     public function onRecurringPayment();
 
-    public function getSubscriptionItems():array;
+    // public function getSubscriptionItems():array;
+
+    public function getSubscriptionPhases():array;
     
 
 }

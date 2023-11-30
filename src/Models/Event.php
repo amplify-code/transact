@@ -1,0 +1,39 @@
+<?php
+
+namespace AscentCreative\Transact\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Str;
+
+use AscentCreative\Transact\Exceptions\WebhookException;
+
+
+/**
+ * A model to represent a wehook event from Stripe
+ */
+class Event extends Model
+{
+    use HasFactory;
+    
+    /*
+    * Uses a global scope to ensure we never include un-completed orders (baskets) when requesting orders
+    */
+    public $table = "transact_events"; 
+   
+    public $fillable = ['event', 'data'];
+
+
+    public static function log($data) {
+
+        $event = Event::create([
+            'event' => $data->type,
+            'data' => json_encode($data)
+        ]);
+
+    }
+    
+
+}

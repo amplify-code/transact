@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 // use AscentCreative\Checkout\Models\Basket;
 // use AscentCreative\Checkout\Models\Order;
 use AscentCreative\Transact\Models\Transaction;
+use AscentCreative\Transact\Models\Event;
 
 /**
  * TODO: BIG ONE
@@ -49,6 +50,9 @@ class WebhookController extends Controller
          
         $event = json_decode($webhookContent);
         // process the event:
+
+        Event::log($event);
+        
          
         if($event->type == 'payment_intent.succeeded') {
 
