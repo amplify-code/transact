@@ -102,7 +102,7 @@
         <p>
             Your card details will be processed by Stripe.
             {{-- <br/> --}}
-            <span style="white-space: nowrap">{{ config('app.name')}}</span> will not have access to your full payment details.
+            <span style="white-space: nowrap">{{ config('app.owner', config('app.name'))}}</span> will not have access to your full payment details.
         </p>
     </div>
 
