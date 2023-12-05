@@ -28,6 +28,8 @@ var StripeUI = {
         this.card = this.elements.create("card", { style: this.options.style });
         this.card.mount("#card-element");
 
+        // this.paymentElement = this.elements.create('card');
+
         this.card.on('change', ({error}) => {
             const displayError = document.getElementById('card-errors');
             if (error) {
@@ -50,17 +52,29 @@ var StripeUI = {
 
         });
 
+        window.addEventListener('message', function(ev) {
+            if (ev.data === '3DS-authentication-complete') {
+              self.on3DSComplete();
+            }
+          }, false);
+
         $('#paymentspinner').on('shown.bs.modal', function (e) {
 
-
+            let card = widget.card;
             widget.stripe
-                .createPaymentMethod({
-                    type: 'card',
-                    card: widget.card,
-                    billing_details: {
-                        name: $('#cardholder').val(),
-                    },
+                .confirmCardSetup({
+                    card,
+                    confirmParams: {
+
+                    }
                 })
+                // .createPaymentMethod({
+                //     type: 'card',
+                //     card: widget.card,
+                //     billing_details: {
+                //         name: $('#cardholder').val(),
+                //     },
+                // })
                 .then( function(result) {
 
                     if (result.error) {
@@ -86,8 +100,18 @@ var StripeUI = {
                                     // widget.pollStatus(data.id);
                                 }
 
+                                if(data.status == 'requires_action') {
+                                    widget.intent = data;
+                                    var iframe = document.createElement('iframe');
+                                    iframe.src = data.next_action.redirect_to_url.url;
+                                    iframe.width = 600;
+                                    iframe.height = 400;
+                                    $('#paymentspinner .modal-body').append(iframe);
+                                }
+
                                 if(data.object == 'subscription_schedule') {
-                                    $(document).trigger('transact-success');
+                                    console.log(data);
+                                    // $(document).trigger('transact-success');
                                 }
                                 
                             }, function(error) {
@@ -100,6 +124,27 @@ var StripeUI = {
            
         });
         
+    },
+
+    on3DSComplete: function() {
+        alert('£DS DONE');
+        console.log('intent', this.intent);
+
+        this.stripe.retrievePaymentIntent(this.intent.client_secret)
+        .then(function(result) {
+            console.log(result);
+            if (result.error) {
+                // PaymentIntent client secret was invalid
+            } else {
+            if (result.paymentIntent.status === 'succeeded') {
+                // Show your customer that the payment has succeeded
+                $(document).trigger('transact-success');
+            } else if (result.paymentIntent.status === 'requires_payment_method') {
+                // Authentication failed, prompt the customer to enter another payment method
+            }
+            }
+
+        });
     },
 
     startFunction: function(resolve, reject) {

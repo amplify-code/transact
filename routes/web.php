@@ -4,6 +4,9 @@
 
 /** outside web middleware to avoid CSRF clashes */
 
+Route::get('/transact/return', function() {
+    return view("transact::return");
+});
 
 Route::post('/transact/stripe', [AscentCreative\Transact\Controllers\WebhookController::class, 'stripe']);
 

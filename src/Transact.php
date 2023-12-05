@@ -33,10 +33,11 @@ class Transact {
             'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
             'currency' => 'gbp',
             'confirm' => true,
+            'return_url' => 'https://12sc.test/transact/return',
             'payment_method'=> $paymentMethod,
             'automatic_payment_methods' => [
                 'enabled' => true,
-                'allow_redirects' => 'never',
+                // 'allow_redirects' => 'never',
               ],
              'metadata' => [
                  'transaction_id' => $t->uuid
@@ -91,21 +92,30 @@ class Transact {
 
         $paymentMethod = request()->paymentMethod;
 
-        $stripe->paymentMethods->attach(
-            $paymentMethod,
-            [
-                'customer'=>$customer->id
-            ]
-        );
+        // $stripe->paymentMethods->attach(
+        //     $paymentMethod,
+        //     [
+        //         'customer'=>$customer->id
+        //     ]
+        // );
 
-        $stripe->customers->update(
-            $customer->id,
-            [
-                'invoice_settings' => [
-                    'default_payment_method'=> $paymentMethod
-                ]
-            ]
-        );
+        $setupIntent = $stripe->setupIntents->create([
+            'confirm'=>true,
+            'return_url'=>'https://12sc.test/transact/return',
+            'customer'=>$customer->id,
+            'payment_method'=>$paymentMethod,
+        ]);
+
+        // dd($setupIntent);
+
+        // $stripe->customers->update(
+        //     $customer->id,
+        //     [
+        //         'invoice_settings' => [
+        //             'default_payment_method'=> $paymentMethod
+        //         ]
+        //     ]
+        // );
 
 
         $phases = $model->getSubscriptionPhases();
