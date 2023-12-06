@@ -1,6 +1,6 @@
 <?php
 
-
+use AscentCreative\Transact\Models\Transaction;
 
 /** outside web middleware to avoid CSRF clashes */
 
@@ -8,9 +8,10 @@ Route::get('/transact/return', function() {
     return view("transact::return");
 });
 
-Route::post('/transact/setupintent', function() {
+Route::post('/transact/subscribe', function() {
     // dd(request()->all());
-    return \AscentCreative\Transact\Transact::setupintent(request()->payment_method);
+    // $t = Transaction::where('uuid', request()->transaction_id)->first();
+    return \AscentCreative\Transact\Transact::subscribe(request()->setupIntent);
 });
 
 Route::post('/transact/stripe', [AscentCreative\Transact\Controllers\WebhookController::class, 'stripe']);

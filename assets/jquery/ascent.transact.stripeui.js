@@ -142,6 +142,7 @@ var StripeUI = {
                     // we're just pre-confirming the payment method here
                     if(result.object == 'setup_intent') {
                         console.log('si', result);
+                        let setup_intent = result;
                         widget.intent = result;
                         widget.stripe.confirmCardSetup(
                             result.client_secret, 
@@ -153,8 +154,28 @@ var StripeUI = {
                                 // failed to confirm
                                 widget.failFunction(result.error.message);
                             } else {
+                                console.log(setup_intent);
                                 // success - proceed
-                                $(document).trigger('transact-success');
+                                // $(document).trigger('transact-success');
+                                return new Promise(function(resolve, reject) {
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/transact/subscribe',
+                                        data: {
+                                            setupIntent: setup_intent.id
+                                        },
+                                        headers: {
+                                            'Accept' : "application/json"
+                                        }
+                                    }).done(function(data, xhr, request) {
+                                        
+                                        $(document).trigger('transact-success');
+                                        
+                                    }).fail(function(data) {
+                                        // console.log('subsccribe fail');
+                                        reject('Error Subscribing');
+                                    });
+                                });
                             }
                         });
                     }

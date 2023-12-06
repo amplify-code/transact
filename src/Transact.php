@@ -10,24 +10,7 @@ use Carbon\Carbon;
 
 class Transact {
 
-    static function setupintent($paymentMethod) {
-
-        $secret = config('transact.stripe_secret_key');
-
-        $stripe = new \Stripe\StripeClient(
-            $secret
-        );
-
-        $setupIntent = $stripe->setupIntents->create([
-            // 'customer'=>$customer->id,
-            'payment_method'=>$paymentMethod['id'],
-        ]);
-
-        return $setupIntent;
-
-    }
-
-    static function start(iTransactable $model, $paymentMethod) {
+    static function pay(iTransactable $model, $paymentMethod) {
 
         // does a transaction already exist?
         
@@ -93,8 +76,8 @@ class Transact {
     }
 
 
-    // subscribe - starts a subscription schedule, allowing free periods etc.
-    static function subscribe(iSubscribable $model, $paymentMethod) {
+    // setup - creates a setup intent
+    static function setup(iSubscribable $model, $paymentMethod) {
 
         // find or create Transaction
         $t = Transaction::firstOrCreate([
@@ -157,8 +140,35 @@ class Transact {
             ]
         ]);
 
+        $t->reference = $setupIntent->id;
+        $t->save();
 
-        // return $setupIntent;
+
+        return $setupIntent;
+
+    }
+
+
+    // subscribe - starts a subscription schedule, allowing free periods etc.
+    // called once the setup intent has been created.
+    static function subscribe($setup_intent) {
+
+         // set up with Stripe:
+        // - register the customer
+        $secret = config('transact.stripe_secret_key');
+
+        $stripe = new \Stripe\StripeClient(
+            $secret
+        );
+
+        $si = $stripe->setupIntents->retrieve($setup_intent);
+
+
+        $t = Transaction::where('uuid', $si->metadata->transaction_id)->first();
+        // get the model
+        $model = $t->transactable;
+
+        // dd($model);
 
 
         $phases = $model->getSubscriptionPhases();
@@ -169,7 +179,7 @@ class Transact {
         }
         
         $payload = [
-            'customer' => $customer->id,
+            'customer' => $si->customer,
             'start_date' => \Carbon\Carbon::now()->timestamp,
             'end_behavior' => 'release',
             'phases'=> $phases,
@@ -178,14 +188,15 @@ class Transact {
         $sched = $stripe->subscriptionSchedules->create($payload);
 
         // $t->reference = $sched->id;
-        $t->reference = $setupIntent->id;
-        $t->save();
+    
 
         // dd($sched);
 
         $model->onSubscriptionCreated($sched);
 
-        return $setupIntent;
+        return $sched;
+
+        // return $setupIntent;
 
     }
 
