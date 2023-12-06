@@ -183,9 +183,7 @@ class Transact {
 
         // dd($sched);
 
-        // this is wrong... need to trigger after setup intent
-        // 
-        // $model->onSubscriptionCreated($sched);
+        $model->onSubscriptionCreated($sched);
 
         return $setupIntent;
 
