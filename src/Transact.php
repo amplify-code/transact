@@ -46,46 +46,40 @@ class Transact {
            $secret
         );
 
-          // create a customer with optional test clock
-          $cust_payload = [
-            'email' => $model->getCustomerEmail(),
-            'name' => $model->getCustomerName(),
-        ];
+        // create a customer
+        // $cust_payload = [
+        //     'email' => $model->getCustomerEmail(),
+        //     'name' => $model->getCustomerName(),
+        // ];
 
-        $customer = $stripe->customers->create(
-            $cust_payload
-        );
+        // $customer = $stripe->customers->create(
+            // $cust_payload
+        // );
 
         $paymentMethod = request()->paymentMethod;
 
-        $stripe->paymentMethods->attach(
-            $paymentMethod,
-            [
-                'customer'=>$customer->id
-            ]
-        );
+        // $stripe->paymentMethods->attach(
+            // $paymentMethod,
+            // [
+                // 'customer'=>$customer->id
+            // ]
+        // );
 
-        $stripe->customers->update(
-            $customer->id,
-            [
-                'invoice_settings' => [
-                    'default_payment_method'=> $paymentMethod
-                ]
-            ]
-        );
+        // $stripe->customers->update(
+            // $customer->id,
+            // [
+                // 'invoice_settings' => [
+                    // 'default_payment_method'=> $paymentMethod
+                // ]
+            // ]
+        // );
 
 
         $intent = $stripe->paymentIntents->create([
             'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
             'currency' => 'gbp',
-            'confirm' => true,
-            'return_url' => 'https://12sc.test/transact/return',
             'payment_method'=> $paymentMethod,
-            'customer'=> $customer->id,
-            'automatic_payment_methods' => [
-                'enabled' => true,
-            //     // 'allow_redirects' => 'never',
-              ],
+            // 'customer'=> $customer->id,
              'metadata' => [
                  'transaction_id' => $t->uuid
              ]
@@ -155,6 +149,13 @@ class Transact {
             ]
         );
 
+        $setupIntent = $stripe->setupIntents->create([
+            'customer'=>$customer->id,
+            'payment_method'=>$paymentMethod,
+        ]);
+
+        // return $setupIntent;
+
 
         $phases = $model->getSubscriptionPhases();
 
@@ -172,14 +173,15 @@ class Transact {
 
         $sched = $stripe->subscriptionSchedules->create($payload);
 
-        $t->reference = $sched->id;
+        // $t->reference = $sched->id;
+        $t->reference = $setupIntent->id;
         $t->save();
 
         // dd($sched);
 
         $model->onSubscriptionCreated($sched);
 
-        return $sched;
+        return $setupIntent;
 
     }
 
