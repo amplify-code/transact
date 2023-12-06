@@ -74,15 +74,19 @@ var StripeUI = {
 
                     } else {
 
+                        
                         return new Promise(function(resolve, reject) {
 
                             $('.validation-error').remove();
-
+                            // get the data from the parent form
                             let form = $(widget.element).parents('form')[0];
                             let url = $(form).attr('action');
                             let formData = new FormData(form);
+
+                            // add the payment method as a parameter
                             formData.append('paymentMethod', result.paymentMethod.id);
 
+                            // send the data
                             $.ajax({       
                                 type: 'POST',
                                 url: $(form).attr('action'),
@@ -93,11 +97,10 @@ var StripeUI = {
                                     'Accept' : "application/json"
                                 }
                             }).done(function(data, xhr, request) {
-                               
+                                // if sucessful, the returned data is the Payment/Setup Intent
                                 resolve(data);
-                                // resolve(data);
                             }).fail(function(error) {
-                                console.log(error);
+                                // handle errors
                                 if(error.status == 422) {
                                     // validation error - cancel the process
                                     // need code to process the validation errors
@@ -116,7 +119,7 @@ var StripeUI = {
                 })
                 .then(function (result) {
 
-                    /** Response is a payment intent. Attempt to confirm it */
+                    /** Result is a payment intent. Attempt to confirm it */
                     if(result.object == 'payment_intent') {
                         widget.intent = result;
                         widget.stripe.confirmCardPayment(
@@ -134,7 +137,9 @@ var StripeUI = {
                         });
                     }
 
-                    /** Response is a Setup Intent - Attempt to confirm it */
+                    /** Result is a Setup Intent - Attempt to confirm it */
+                    // NB - the SubscriptionSchedule will have been created in the background
+                    // we're just pre-confirming the payment method here
                     if(result.object == 'setup_intent') {
                         widget.intent = result;
                         widget.stripe.confirmCardSetup(
@@ -144,11 +149,10 @@ var StripeUI = {
                             }
                         ).then(function (result) {
                             if(result.error) {
-                                // alert('ERROR');
-                                // console.log('si fail', result);
+                                // failed to confirm
                                 widget.failFunction(result.error.message);
                             } else {
-                                // console.log('si confirmation result', result);
+                                // success - proceed
                                 $(document).trigger('transact-success');
                             }
                         });
@@ -156,6 +160,7 @@ var StripeUI = {
 
 
                 }, function(error) {
+                    // catch all failure handler
                     widget.failFunction(error);
                 });
 
@@ -165,7 +170,8 @@ var StripeUI = {
 
     },
 
-   
+    // No longer used - or maybe the default start function should be the one in the method above, 
+    // and we're able to overrid it.
     startFunction: function(resolve, reject) {
         reject(new Error('Start Promise has not been defined'));
     },
@@ -175,8 +181,6 @@ var StripeUI = {
     },
 
     failFunction: function(error) {
-
-        console.log('fail fn', error);
 
         // populate an error message on the UI.
         $('#card-errors').html(error);
@@ -253,6 +257,7 @@ $.extend($.ascent.stripeui, {
 }); 
 
 
+// these methods should really be part of a form validation error widget somewhere...
 function processValidationErrors(data) {
     console.log(data);
 
