@@ -115,6 +115,17 @@ class WebhookController extends Controller
 
         }
 
+
+        if($event->type == 'setup_intent.succeeded') {
+
+            $reference = $event->data->object->id;
+            $t = Transaction::where('reference', $reference)->first();
+            if($t) {
+                $t->transactable->onSetupComplete();
+            }
+
+        }
+
     }
   
 

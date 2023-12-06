@@ -25,6 +25,8 @@ interface iSubscribable {
 
     public function onSubscriptionCreated(SubscriptionSchedule $sched);
 
+    public function onSetupComplete();
+
     public function onRecurringPayment();
 
     // public function getSubscriptionItems():array;

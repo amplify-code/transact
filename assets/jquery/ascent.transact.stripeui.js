@@ -141,6 +141,7 @@ var StripeUI = {
                     // NB - the SubscriptionSchedule will have been created in the background
                     // we're just pre-confirming the payment method here
                     if(result.object == 'setup_intent') {
+                        console.log('si', result);
                         widget.intent = result;
                         widget.stripe.confirmCardSetup(
                             result.client_secret, 

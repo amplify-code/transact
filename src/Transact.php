@@ -152,7 +152,11 @@ class Transact {
         $setupIntent = $stripe->setupIntents->create([
             'customer'=>$customer->id,
             'payment_method'=>$paymentMethod,
+            'metadata' => [
+                'transaction_id' => $t->uuid
+            ]
         ]);
+
 
         // return $setupIntent;
 
@@ -179,7 +183,9 @@ class Transact {
 
         // dd($sched);
 
-        $model->onSubscriptionCreated($sched);
+        // this is wrong... need to trigger after setup intent
+        // 
+        // $model->onSubscriptionCreated($sched);
 
         return $setupIntent;
 
