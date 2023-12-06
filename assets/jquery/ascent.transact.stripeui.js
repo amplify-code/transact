@@ -62,20 +62,62 @@ var StripeUI = {
 
             let card = widget.card;
             widget.stripe
-                .confirmCardSetup({
-                    card,
-                    confirmParams: {
-
-                    }
+                .createPaymentMethod({
+                    type: 'card',
+                    card: widget.card,
+                    billing_details: {
+                        name: $('#cardholder').val(),
+                    },
                 })
-                // .createPaymentMethod({
-                //     type: 'card',
-                //     card: widget.card,
-                //     billing_details: {
-                //         name: $('#cardholder').val(),
-                //     },
+                // Then, with the payment method, create a setup intent
+                .then(function(result) {
+                    return new Promise(function(resolve, reject) {
+                        $.ajax({       
+                            type: 'POST',
+                            url: '/transact/setupintent',
+                            data: {
+                                'payment_method' : result.paymentMethod,
+                            },
+                            headers: {
+                                'Accept' : "application/json"
+                            }
+                        }).done(function(data, xhr, request) {
+                            resolve(data);
+                        }).fail(function(data) {
+
+                        });
+                    });
+                })
+                // Then, confirm the setup intent (which will include 3DS checks etc)
+                .then(function(result) {
+                    return new Promise(function(resolve, reject) {
+                        console.log(result);
+                        widget.stripe.confirmCardSetup(
+                            result.client_secret, 
+                        )
+                        .then(function(si_result) {
+                            console.log(si_result);
+                            widget.startFunction(si_result.setupIntent.payment_method)
+                            .then(function(data) {
+                               
+                                console.log(data);
+                                console.log('END');
+                            });
+                        });
+                    });
+                })
+                // Now pass the payment method into the transact function to either make a payment or start a subscription
+
+
+
+                // .then(function (result) {
+                //     console.log(result);
                 // })
                 .then( function(result) {
+
+                    console.log('in here', result);
+                    console.log(result.setupIntent.payment_method);
+                   
 
                     if (result.error) {
                         // Show error to your customer (e.g., insufficient funds)
@@ -92,25 +134,33 @@ var StripeUI = {
                         // The result will either be a payment intent (with 'succeeded' status)
                         // or a subscription_schedule
                         // @TODO - is it possible to write a generic start function which auto detects the parent form and submits it?
-                        widget.startFunction(result)
+                        widget.startFunction(result.setupIntent.payment_method)
                             .then(function(data) {
                                
+                                console.log(data);
+
                                 if(data.status == 'succeeded') {
                                     $(document).trigger('transact-success');
                                     // widget.pollStatus(data.id);
                                 }
 
                                 if(data.status == 'requires_action') {
-                                    widget.intent = data;
-                                    var iframe = document.createElement('iframe');
-                                    iframe.src = data.next_action.redirect_to_url.url;
-                                    iframe.width = 600;
-                                    iframe.height = 400;
-                                    $('#paymentspinner .modal-body').append(iframe);
+                                   widget.stripe
+                                    .retrievePaymentIntent(data.client_secret)
+                                    .then(function(result) {
+                                        console.log('retrieved', result);
+                                        // Handle result.error or result.paymentIntent
+                                    });
                                 }
+                                //     widget.intent = data;
+                                //     var iframe = document.createElement('iframe');
+                                //     iframe.src = data.next_action.redirect_to_url.url;
+                                //     iframe.width = 600;
+                                //     iframe.height = 400;
+                                //     $('#paymentspinner .modal-body').append(iframe);
+                                // }
 
                                 if(data.object == 'subscription_schedule') {
-                                    console.log(data);
                                     // $(document).trigger('transact-success');
                                 }
                                 

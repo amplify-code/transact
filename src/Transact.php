@@ -10,6 +10,23 @@ use Carbon\Carbon;
 
 class Transact {
 
+    static function setupintent($paymentMethod) {
+
+        $secret = config('transact.stripe_secret_key');
+
+        $stripe = new \Stripe\StripeClient(
+            $secret
+        );
+
+        $setupIntent = $stripe->setupIntents->create([
+            // 'customer'=>$customer->id,
+            'payment_method'=>$paymentMethod['id'],
+        ]);
+
+        return $setupIntent;
+
+    }
+
     static function start(iTransactable $model, $paymentMethod) {
 
         // does a transaction already exist?
@@ -29,15 +46,45 @@ class Transact {
            $secret
         );
 
+          // create a customer with optional test clock
+          $cust_payload = [
+            'email' => $model->getCustomerEmail(),
+            'name' => $model->getCustomerName(),
+        ];
+
+        $customer = $stripe->customers->create(
+            $cust_payload
+        );
+
+        $paymentMethod = request()->paymentMethod;
+
+        $stripe->paymentMethods->attach(
+            $paymentMethod,
+            [
+                'customer'=>$customer->id
+            ]
+        );
+
+        $stripe->customers->update(
+            $customer->id,
+            [
+                'invoice_settings' => [
+                    'default_payment_method'=> $paymentMethod
+                ]
+            ]
+        );
+
+
         $intent = $stripe->paymentIntents->create([
             'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
             'currency' => 'gbp',
             'confirm' => true,
             'return_url' => 'https://12sc.test/transact/return',
             'payment_method'=> $paymentMethod,
+            'customer'=> $customer->id,
             'automatic_payment_methods' => [
                 'enabled' => true,
-                // 'allow_redirects' => 'never',
+            //     // 'allow_redirects' => 'never',
               ],
              'metadata' => [
                  'transaction_id' => $t->uuid
@@ -92,30 +139,21 @@ class Transact {
 
         $paymentMethod = request()->paymentMethod;
 
-        // $stripe->paymentMethods->attach(
-        //     $paymentMethod,
-        //     [
-        //         'customer'=>$customer->id
-        //     ]
-        // );
+        $stripe->paymentMethods->attach(
+            $paymentMethod,
+            [
+                'customer'=>$customer->id
+            ]
+        );
 
-        $setupIntent = $stripe->setupIntents->create([
-            'confirm'=>true,
-            'return_url'=>'https://12sc.test/transact/return',
-            'customer'=>$customer->id,
-            'payment_method'=>$paymentMethod,
-        ]);
-
-        // dd($setupIntent);
-
-        // $stripe->customers->update(
-        //     $customer->id,
-        //     [
-        //         'invoice_settings' => [
-        //             'default_payment_method'=> $paymentMethod
-        //         ]
-        //     ]
-        // );
+        $stripe->customers->update(
+            $customer->id,
+            [
+                'invoice_settings' => [
+                    'default_payment_method'=> $paymentMethod
+                ]
+            ]
+        );
 
 
         $phases = $model->getSubscriptionPhases();

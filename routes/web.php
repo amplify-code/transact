@@ -8,6 +8,11 @@ Route::get('/transact/return', function() {
     return view("transact::return");
 });
 
+Route::post('/transact/setupintent', function() {
+    // dd(request()->all());
+    return \AscentCreative\Transact\Transact::setupintent(request()->payment_method);
+});
+
 Route::post('/transact/stripe', [AscentCreative\Transact\Controllers\WebhookController::class, 'stripe']);
 
 
