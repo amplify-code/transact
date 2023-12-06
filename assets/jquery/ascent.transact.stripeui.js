@@ -58,7 +58,11 @@ var StripeUI = {
             }
           }, false);
 
-        $('#paymentspinner').on('shown.bs.modal', function (e) {
+
+        
+
+
+        $('#xpaymentspinner').on('shown.bs.modal', function (e) {
 
             let card = widget.card;
             widget.stripe
