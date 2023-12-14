@@ -6,72 +6,86 @@ use AscentCreative\Transact\Models\Transaction;
 use AscentCreative\Transact\Contracts\iTransactable;
 use AscentCreative\Transact\Contracts\iSubscribable;
 
+use Illuminate\Http\JsonResponse;
+
 use Carbon\Carbon;
 
 class Transact {
 
     static function pay(iTransactable $model, $paymentMethod) {
 
-        // does a transaction already exist?
-        
-       $t = Transaction::create([
-            'transactable_type' => get_class($model),
-            'transactable_id' => $model->id
-       ]);
-       $t->transactable()->associate($model);
-       $t->save();
+        try { 
 
-       // create a stripe payment intent
-
-       $secret = config('transact.stripe_secret_key');
-
-       $stripe = new \Stripe\StripeClient(
-           $secret
-        );
-
-        // create a customer
-        // $cust_payload = [
-        //     'email' => $model->getCustomerEmail(),
-        //     'name' => $model->getCustomerName(),
-        // ];
-
-        // $customer = $stripe->customers->create(
-            // $cust_payload
-        // );
-
-        $paymentMethod = request()->paymentMethod;
-
-        // $stripe->paymentMethods->attach(
-            // $paymentMethod,
-            // [
-                // 'customer'=>$customer->id
-            // ]
-        // );
-
-        // $stripe->customers->update(
-            // $customer->id,
-            // [
-                // 'invoice_settings' => [
-                    // 'default_payment_method'=> $paymentMethod
-                // ]
-            // ]
-        // );
-
-
-        $intent = $stripe->paymentIntents->create([
-            'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
-            'currency' => 'gbp',
-            'payment_method'=> $paymentMethod,
-            // 'customer'=> $customer->id,
-             'metadata' => [
-                 'transaction_id' => $t->uuid
-             ]
+            // does a transaction already exist?
+            
+        $t = Transaction::create([
+                'transactable_type' => get_class($model),
+                'transactable_id' => $model->id
         ]);
-
-        $t->reference = $intent->id;
+        $t->transactable()->associate($model);
         $t->save();
 
-        return $intent;
+        // create a stripe payment intent
+
+        $secret = config('transact.stripe_secret_key');
+
+        $stripe = new \Stripe\StripeClient(
+            $secret
+            );
+
+            // create a customer
+            // $cust_payload = [
+            //     'email' => $model->getCustomerEmail(),
+            //     'name' => $model->getCustomerName(),
+            // ];
+
+            // $customer = $stripe->customers->create(
+                // $cust_payload
+            // );
+
+            $paymentMethod = request()->paymentMethod;
+
+            // $stripe->paymentMethods->attach(
+                // $paymentMethod,
+                // [
+                    // 'customer'=>$customer->id
+                // ]
+            // );
+
+            // $stripe->customers->update(
+                // $customer->id,
+                // [
+                    // 'invoice_settings' => [
+                        // 'default_payment_method'=> $paymentMethod
+                    // ]
+                // ]
+            // );
+
+
+            $intent = $stripe->paymentIntents->create([
+                'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
+                'currency' => 'gbp',
+                'payment_method'=> $paymentMethod,
+                // 'customer'=> $customer->id,
+                'metadata' => [
+                    'transaction_id' => $t->uuid
+                ]
+            ]);
+
+            $t->reference = $intent->id;
+            $t->save();
+
+            return $intent;
+
+        } catch (\Exception $e) {
+
+            // throw new \Exception($e->getMessage());
+            return new JsonResponse([
+                'status' => 'Error',
+                'message' => $e->getMessage(),
+            ], 500);
+
+        }
 
     }
 
@@ -79,72 +93,88 @@ class Transact {
     // setup - creates a setup intent
     static function setup(iSubscribable $model, $paymentMethod) {
 
-        // find or create Transaction
-        $t = Transaction::firstOrCreate([
-            'transactable_type' => get_class($model),
-            'transactable_id' => $model->id
-        ], [
-            'is_recurring' => 1, 
-        ]);
-        $t->transactable()->associate($model);
-        $t->save();
+        try {
 
-        // set up with Stripe:
-        // - register the customer
-        $secret = config('transact.stripe_secret_key');
+            // find or create Transaction
+            $t = Transaction::firstOrCreate([
+                'transactable_type' => get_class($model),
+                'transactable_id' => $model->id
+            ], [
+                'is_recurring' => 1, 
+            ]);
+            $t->transactable()->associate($model);
+            $t->save();
 
-        $stripe = new \Stripe\StripeClient(
-            $secret
-        );
+            // set up with Stripe:
+            // - register the customer
+            $secret = config('transact.stripe_secret_key');
 
-        // create a customer with optional test clock
-        $cust_payload = [
-            'email' => $model->getCustomerEmail(),
-            'name' => $model->getCustomerName(),
-        ];
-
-        if(config('transact.stripe_test_clocks')) {
-            $clock = $stripe->testHelpers->testClocks->create(
-                ['frozen_time' => Carbon::now()->timestamp, 'name' => 'Transact Test Clock']
+            $stripe = new \Stripe\StripeClient(
+                $secret
             );
-            $cust_payload['test_clock'] = $clock->id;
-        }
 
-        $customer = $stripe->customers->create(
-            $cust_payload
-        );
+            // create a customer with optional test clock
+            $cust_payload = [
+                'email' => $model->getCustomerEmail(),
+                'name' => $model->getCustomerName(),
+            ];
 
-        $paymentMethod = request()->paymentMethod;
+            if(config('transact.stripe_test_clocks')) {
+                $clock = $stripe->testHelpers->testClocks->create(
+                    ['frozen_time' => Carbon::now()->timestamp, 'name' => 'Transact Test Clock']
+                );
+                $cust_payload['test_clock'] = $clock->id;
+            }
 
-        $stripe->paymentMethods->attach(
-            $paymentMethod,
-            [
-                'customer'=>$customer->id
-            ]
-        );
+            $customer = $stripe->customers->create(
+                $cust_payload
+            );
 
-        $stripe->customers->update(
-            $customer->id,
-            [
-                'invoice_settings' => [
-                    'default_payment_method'=> $paymentMethod
+            $paymentMethod = request()->paymentMethod;
+
+           
+
+            $stripe->paymentMethods->attach(
+                $paymentMethod,
+                [
+                    'customer'=>$customer->id
                 ]
-            ]
-        );
+            );
 
-        $setupIntent = $stripe->setupIntents->create([
-            'customer'=>$customer->id,
-            'payment_method'=>$paymentMethod,
-            'metadata' => [
-                'transaction_id' => $t->uuid
-            ]
-        ]);
+            
 
-        $t->reference = $setupIntent->id;
-        $t->save();
+            $stripe->customers->update(
+                $customer->id,
+                [
+                    'invoice_settings' => [
+                        'default_payment_method'=> $paymentMethod
+                    ]
+                ]
+            );
+
+            $setupIntent = $stripe->setupIntents->create([
+                'customer'=>$customer->id,
+                'payment_method'=>$paymentMethod,
+                'metadata' => [
+                    'transaction_id' => $t->uuid
+                ]
+            ]);
+
+            $t->reference = $setupIntent->id;
+            $t->save();
 
 
-        return $setupIntent;
+            return $setupIntent;
+
+        } catch (\Exception $e) {
+
+            // throw new \Exception($e->getMessage());
+            return new JsonResponse([
+                'status' => 'Error',
+                'message' => $e->getMessage(),
+            ], 500);
+
+        }
 
     }
 
@@ -153,48 +183,60 @@ class Transact {
     // called once the setup intent has been created.
     static function subscribe($setup_intent) {
 
-         // set up with Stripe:
-        // - register the customer
-        $secret = config('transact.stripe_secret_key');
+        try {
 
-        $stripe = new \Stripe\StripeClient(
-            $secret
-        );
+            // set up with Stripe:
+            // - register the customer
+            $secret = config('transact.stripe_secret_key');
 
-        $si = $stripe->setupIntents->retrieve($setup_intent);
+            $stripe = new \Stripe\StripeClient(
+                $secret
+            );
 
-
-        $t = Transaction::where('uuid', $si->metadata->transaction_id)->first();
-        // get the model
-        $model = $t->transactable;
-
-        // dd($model);
+            $si = $stripe->setupIntents->retrieve($setup_intent);
 
 
-        $phases = $model->getSubscriptionPhases();
+            $t = Transaction::where('uuid', $si->metadata->transaction_id)->first();
+            // get the model
+            $model = $t->transactable;
 
-        // stamp transaction id into each phase metadata
-        foreach($phases as $idx=>$phase) {
-            $phases[$idx]['metadata']['transaction_id'] = $t->uuid;    
-        }
+            // dd($model);
+
+
+            $phases = $model->getSubscriptionPhases();
+
+            // stamp transaction id into each phase metadata
+            foreach($phases as $idx=>$phase) {
+                $phases[$idx]['metadata']['transaction_id'] = $t->uuid;    
+            }
+            
+            $payload = [
+                'customer' => $si->customer,
+                'start_date' => \Carbon\Carbon::now()->timestamp,
+                'end_behavior' => 'release',
+                'phases'=> $phases,
+            ];
+
+            $sched = $stripe->subscriptionSchedules->create($payload);
+
+            // $t->reference = $sched->id;
         
-        $payload = [
-            'customer' => $si->customer,
-            'start_date' => \Carbon\Carbon::now()->timestamp,
-            'end_behavior' => 'release',
-            'phases'=> $phases,
-        ];
 
-        $sched = $stripe->subscriptionSchedules->create($payload);
+            // dd($sched);
 
-        // $t->reference = $sched->id;
-    
+            $model->onSubscriptionCreated($sched);
 
-        // dd($sched);
+            return $sched;
 
-        $model->onSubscriptionCreated($sched);
+        } catch (\Exception $e) {
 
-        return $sched;
+            // throw new \Exception($e->getMessage());
+            return new JsonResponse([
+                'status' => 'Error',
+                'message' => $e->getMessage(),
+            ], 500);
+
+        }
 
         // return $setupIntent;
 
