@@ -18,6 +18,8 @@ class TransactServiceProvider extends ServiceProvider
         __DIR__.'/../config/transact.php', 'transact'
     );
 
+    $this->app->register(\AscentCreative\Transact\Providers\EventServiceProvider::class);
+
   }
 
   public function boot()

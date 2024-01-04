@@ -113,18 +113,10 @@ class WebhookController extends Controller
             
             $t->markPaid($amount, $fees, $reference, $webhookContent, $paid_at);
 
+            
+            // \AscentCreative\Transact\Events\PaymentIntentSucceeded::dispatch($event);
+
         }
-
-
-        // if($event->type == 'setup_intent.succeeded') {
-
-        //     $reference = $event->data->object->id;
-        //     $t = Transaction::where('reference', $reference)->first();
-        //     if($t) {
-        //         $t->transactable->onSetupComplete();
-        //     }
-
-        // }
 
     }
   
