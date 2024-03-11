@@ -12,7 +12,7 @@ use Carbon\Carbon;
 
 class Transact {
 
-    static function pay(iTransactable $model, $paymentMethod) {
+    static function pay(iTransactable $model, $paymentMethod=null) {
 
         try { 
 
@@ -43,7 +43,9 @@ class Transact {
                 // $cust_payload
             // );
 
-            $paymentMethod = request()->paymentMethod;
+            if(!$paymentMethod) {
+                $paymentMethod = request()->paymentMethod;
+            }
 
             // $stripe->paymentMethods->attach(
                 // $paymentMethod,
@@ -91,7 +93,7 @@ class Transact {
 
 
     // setup - creates a setup intent
-    static function setup(iSubscribable $model, $paymentMethod) {
+    static function setup(iSubscribable $model, $paymentMethod=null) {
 
         try {
 
@@ -130,7 +132,9 @@ class Transact {
                 $cust_payload
             );
 
-            $paymentMethod = request()->paymentMethod;
+            if(!$paymentMethod) {
+                $paymentMethod = request()->paymentMethod;
+            }
 
            
 
