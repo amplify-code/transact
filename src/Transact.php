@@ -71,7 +71,8 @@ class Transact {
                 // 'customer'=> $customer->id,
                 'metadata' => [
                     'transaction_id' => $t->uuid
-                ]
+                ],
+                'capture_method' => 'automatic'
             ]);
 
             $t->reference = $intent->id;
