@@ -1,6 +1,6 @@
 @push('scripts')
-    @script('https://js.stripe.com/v3/')
-    @script('/vendor/ascent/transact/jquery/ascent.transact.stripeui.js')
+    @scripttag('https://js.stripe.com/v3/')
+    @scripttag('/vendor/ascent/transact/jquery/ascent.transact.stripeui.js')
 
     <SCRIPT>
         $(document).ready(function() {
