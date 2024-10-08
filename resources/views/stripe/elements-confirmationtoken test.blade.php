@@ -1,4 +1,6 @@
-<div class="transact-stripe-elements">
+
+{{-- <form id="payment-form"> --}}
+<div>
     <div id="payment-element" style="margin-bottom: 20px;">
       <!-- Elements will create form elements here -->
     </div>
@@ -7,13 +9,12 @@
       <!-- Display error message to your customers here -->
     </div>
   
-    <div id="stripe-actions" style="margin-top: 20px; text-align: right">
-        <button id="stripe-elements-submit" class="btn btn-primary">{{ $buttonText }}</button>
+    <div id="stripe-actions" style="margin: 20px 0; text-align: right">
+        <button id="submit" class="btn btn-primary">{{ $buttonText }}</button>
     </div>
 </div>
-
-
-{{-- @dump($intent); --}}
+  
+{{-- </form> --}}
 
 
 @push('styles')
@@ -34,8 +35,11 @@
 
         const options = {
 
+            'mode': 'payment',
+            'currency': 'gbp',
+            'amount': 3600
             // for use with existing intent:
-            clientSecret: '{{ $intent->client_secret }}',
+            // clientSecret: '{{-- $intent->client_secret --}}',
 
             // Fully customizable with appearance API.
             //  - Set via application.ini / Config, 
@@ -51,24 +55,27 @@
 
     // Create and mount the Payment Element
     const paymentElement = elements.create('payment', {
+        // {{--
+        // @if($intent->payment_method_types)
+        //     paymentMethodOrder: {{ json_encode($intent->payment_method_types) }},
+        // @endif
+        // --}}
 
-        @if($intent->payment_method_types)
-            paymentMethodOrder: {!! json_encode($transactable->getStripePaymentMethods()) !!},
-        @endif
-        
     });
     paymentElement.mount('#payment-element');
 
     paymentElement.on('ready', function(event) {
     // Handle ready event
-        $('#stripe-actions').show();
+    $('#stripe-actions').show();
     });
 
-    // const form = document.getElementById('payment-form');
+    const form = document.getElementById('payment-form');
 
-    // form.addEventListener('submitx', async (event) => {
+    form.addEventListener('submitx', async (event) => {
 
-    $(document).on('click', '#stripe-elements-submit', async (event) => {
+        alert('submit');
+
+        console.log(elements._commonOptions);
 
         event.preventDefault();
 
@@ -81,32 +88,32 @@
         }
 
 
-        // const {error, confirmationToken} = await stripe.createConfirmationToken({
-        //             elements,
-        //             params: {
-        //             shipping: {
-        //                 name: 'Jenny Rosen',
-        //                 address: {
-        //                 line1: '1234 Main Street',
-        //                 city: 'San Francisco',
-        //                 state: 'CA',
-        //                 country: 'US',
-        //                 postal_code: '94111',
-        //                 },
-        //             },
-        //             return_url: 'https://example.com/order/123/complete'
-        //             }
-        //         });
+        const {error, confirmationToken} = await stripe.createConfirmationToken({
+                    elements,
+                    params: {
+                    shipping: {
+                        name: 'Jenny Rosen',
+                        address: {
+                        line1: '1234 Main Street',
+                        city: 'San Francisco',
+                        state: 'CA',
+                        country: 'US',
+                        postal_code: '94111',
+                        },
+                    },
+                    return_url: 'https://example.com/order/123/complete'
+                    }
+                });
 
-        //     console.log('confirmationToken', confirmationToken);
+            console.log('confirmationToken', confirmationToken);
 
-        const {error} = await stripe.confirmPayment({
-            //`Elements` instance that was used to create the Payment Element
-            elements,
-            confirmParams: {
-                return_url: '{{ $return }}'
-            }
-        });
+        // const {error} = await stripe.confirmPayment({
+        //     //`Elements` instance that was used to create the Payment Element
+        //     elements,
+        //     confirmParams: {
+        //         return_url: '{{-- route('subscribe.return') --}}'
+        //     }
+        // });
 
         // if (error) {
         //     // This point will only be reached if there is an immediate error when

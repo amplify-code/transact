@@ -93,11 +93,13 @@ class WebhookController extends Controller
                         $event->data->object->invoice,
                         []
                     );
-                    Log::debug(print_r($inv, true));
+                   
                     // Log::debug($inv->lines->data[0]->metadata->transaction_id);
+                    $meta = $inv->lines->data[0]->metadata;
                     $transaction_id = $inv->lines->data[0]->metadata->transaction_id;
                     $paid_at = $inv->status_transitions->paid_at;
                 } else {
+                    $meta = $meta;
                     $transaction_id = $meta->transaction_id;
                 }
     
@@ -108,10 +110,27 @@ class WebhookController extends Controller
 
             $reference = $event->data->object->id;
             
-            // rather than getting the basket, get the Transaction record.
-            $t = Transaction::getUnpaidForUUID($transaction_id, $reference);
-            
+            if($transaction_id = $meta->transaction_id) {
+
+                // Legacy Code (transaction created ahead of time)
+                $t = Transaction::getUnpaidForUUID($transaction_id, $reference);
+               
+
+            } else {
+
+                // New Code
+                // Create a transacrion record when the webhook comes in
+                $t = Transaction::create([
+                    'transactable_type' => $meta->model,
+                    'transactable_id' => $meta->model_id,
+                ]);
+                
+                $t->save();
+
+            }
+
             $t->markPaid($amount, $fees, $reference, $webhookContent, $paid_at);
+            
 
             
             // \AscentCreative\Transact\Events\PaymentIntentSucceeded::dispatch($event);

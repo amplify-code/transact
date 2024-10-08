@@ -11,6 +11,11 @@ class StripeElements extends Component
     public $id = '';
     public $buttonText;
 
+    public $transactable;
+    public $intent;
+
+    public $return;
+
     public $cssSrc = null;
 
     // the style array as defined at https://stripe.com/docs/js/appendix/style
@@ -29,11 +34,18 @@ class StripeElements extends Component
      *
      * @return void
      */
-    public function __construct($id="stripe-ui", $buttonText="Pay Now", $cssSrc=null, $style=null)
+    public function __construct($transactable, $return='', $id="stripe-ui", $buttonText="Pay Now", $cssSrc=null, $style=null)
     {
         //
         $this->id = $id;
         $this->buttonText = $buttonText;
+
+        if($transactable) {
+            $this->transactable = $transactable;
+            $this->intent = $transactable->getStripeIntent();
+        }
+
+        $this->return = $return;
 
         if($cssSrc) {
             $this->cssSrc = $cssSrc;
