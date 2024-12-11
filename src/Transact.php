@@ -67,6 +67,7 @@ class Transact {
             $intent = $stripe->paymentIntents->create([
                 'amount' => floor($model->getTransactionAmount() * 100), // ensure no DP
                 'currency' => 'gbp',
+                'description' => $model->getTransactionDescription() ?? null,
                 'payment_method'=> $paymentMethod,
                 // 'customer'=> $customer->id,
                 'metadata' => [
@@ -160,6 +161,7 @@ class Transact {
             $setupIntent = $stripe->setupIntents->create([
                 'customer'=>$customer->id,
                 'payment_method'=>$paymentMethod,
+                'description' => $model->getSubscriptionDescription() ?? null,
                 'metadata' => [
                     'transaction_id' => $t->uuid
                 ]

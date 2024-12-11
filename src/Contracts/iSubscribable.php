@@ -16,6 +16,8 @@ interface iSubscribable {
 
     public function getSubscriptionAmount():float;
 
+    public function getSubscriptionDescription():string;
+
     public function getStripeProductId():string;
 
     public function getInterval():string;
