@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Models;
+namespace AmplifyCode\Transact\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Str;
 
-use AscentCreative\Transact\Exceptions\WebhookException;
+use AmplifyCode\Transact\Exceptions\WebhookException;
 
 
 /**

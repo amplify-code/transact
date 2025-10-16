@@ -1,10 +1,10 @@
 <?php
 
-namespace AscentCreative\Transact;
+namespace AmplifyCode\Transact;
 
-use AscentCreative\Transact\Models\Transaction;
-use AscentCreative\Transact\Contracts\iTransactable;
-use AscentCreative\Transact\Contracts\iSubscribable;
+use AmplifyCode\Transact\Models\Transaction;
+use AmplifyCode\Transact\Contracts\iTransactable;
+use AmplifyCode\Transact\Contracts\iSubscribable;
 
 use Illuminate\Http\JsonResponse;
 

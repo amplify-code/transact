@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Exceptions;
+namespace AmplifyCode\Transact\Exceptions;
 
 use Exception;
 

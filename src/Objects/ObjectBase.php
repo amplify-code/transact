@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Objects;
+namespace AmplifyCode\Transact\Objects;
 
 class ObjectBase {
 

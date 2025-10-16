@@ -1,11 +1,11 @@
 <?php
 
-namespace AscentCreative\Transact\Providers;
+namespace AmplifyCode\Transact\Providers;
 
-use AscentCreative\Transact\Events\PaymentIntentSucceeded;
+use AmplifyCode\Transact\Events\PaymentIntentSucceeded;
 
 
-use AscentCreative\Transact\Listeners\PaymentIntentSucceededListener;
+use AmplifyCode\Transact\Listeners\PaymentIntentSucceededListener;
 
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;

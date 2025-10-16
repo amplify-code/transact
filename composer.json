@@ -1,11 +1,15 @@
 {
-  "name": "ascentcreative/transact",
+  "name": "amplify-code/transact",
   "description": "Payment Transaction Handling",
   "type": "library",
   "authors": [
     {
       "name": "Ascent Creative",
       "email": "info@ascent-creative.co.uk"
+    },
+    {
+      "name": "Amplify Code",
+      "email": "colin@amplifycode.com"
     }
   ],
   "require": {
@@ -17,13 +21,13 @@
   },
   "autoload": {
     "psr-4": {
-      "AscentCreative\\Transact\\": "src"
+      "AmplifyCode\\Transact\\": "src"
     }
   },
   "extra": {
     "laravel": {
         "providers": [
-            "AscentCreative\\Transact\\TransactServiceProvider"
+            "AmplifyCode\\Transact\\TransactServiceProvider"
         ]
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Components;
+namespace AmplifyCode\Transact\Components;
 
 use Illuminate\View\Component;
 

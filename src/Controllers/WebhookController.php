@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Controllers;
+namespace AmplifyCode\Transact\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -10,10 +10,10 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Support\Facades\Log;
 
-// use AscentCreative\Checkout\Models\Basket;
-// use AscentCreative\Checkout\Models\Order;
-use AscentCreative\Transact\Models\Transaction;
-use AscentCreative\Transact\Models\Event;
+// use AmplifyCode\Checkout\Models\Basket;
+// use AmplifyCode\Checkout\Models\Order;
+use AmplifyCode\Transact\Models\Transaction;
+use AmplifyCode\Transact\Models\Event;
 
 /**
  * TODO: BIG ONE
@@ -133,7 +133,7 @@ class WebhookController extends Controller
             
 
             
-            // \AscentCreative\Transact\Events\PaymentIntentSucceeded::dispatch($event);
+            // \AmplifyCode\Transact\Events\PaymentIntentSucceeded::dispatch($event);
 
         }
 

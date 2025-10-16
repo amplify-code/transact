@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Events;
+namespace AmplifyCode\Transact\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;

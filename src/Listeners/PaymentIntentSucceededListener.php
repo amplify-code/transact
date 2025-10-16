@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Listeners;
+namespace AmplifyCode\Transact\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
-use AscentCreative\Transact\Events\PaymentIntentSucceeded;
+use AmplifyCode\Transact\Events\PaymentIntentSucceeded;
 
 class PaymentIntentSucceededListener implements ShouldQueue
 {

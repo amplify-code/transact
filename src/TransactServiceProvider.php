@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact;
+namespace AmplifyCode\Transact;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
@@ -18,7 +18,7 @@ class TransactServiceProvider extends ServiceProvider
         __DIR__.'/../config/transact.php', 'transact'
     );
 
-    $this->app->register(\AscentCreative\Transact\Providers\EventServiceProvider::class);
+    $this->app->register(\AmplifyCode\Transact\Providers\EventServiceProvider::class);
 
   }
 
@@ -43,9 +43,9 @@ class TransactServiceProvider extends ServiceProvider
   // register the components
   public function bootComponents() {
 
-        Blade::component('transact-stripe-ui', 'AscentCreative\Transact\Components\StripeUI');
+        Blade::component('transact-stripe-ui', 'AmplifyCode\Transact\Components\StripeUI');
 
-        Blade::component('transact-stripe-elements', 'AscentCreative\Transact\Components\StripeElements');
+        Blade::component('transact-stripe-elements', 'AmplifyCode\Transact\Components\StripeElements');
 
   }
 

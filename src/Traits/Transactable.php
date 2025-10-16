@@ -1,8 +1,8 @@
 <?php
 
-namespace AscentCreative\Transact\Traits;
+namespace AmplifyCode\Transact\Traits;
 
-use AscentCreative\Transact\Models\Transaction;
+use AmplifyCode\Transact\Models\Transaction;
 
 trait Transactable {
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace AscentCreative\Transact;
+namespace AmplifyCode\Transact;
 
-use AscentCreative\Transact\Models\Transaction;
+use AmplifyCode\Transact\Models\Transaction;
 
 class TransactionProcessor {
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace AscentCreative\Transact\Contracts;
+namespace AmplifyCode\Transact\Contracts;
 
 interface iTransactable {
 
