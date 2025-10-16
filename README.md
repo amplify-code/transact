@@ -25,7 +25,7 @@ Transact was originally developed by Kieran Metcalfe of Ascent Creative until hi
 composer require amplify-code/transact
 ```
 
-### 2. Publish the configuration
+### 2. Publish the configuration and assets
 
 ```bash
 php artisan vendor:publish --provider="AmplifyCode\Transact\TransactServiceProvider"
@@ -45,6 +45,16 @@ Add the following to your `.env` file:
 STRIPE_PUBLIC=your_stripe_public_key
 STRIPE_SECRET=your_stripe_secret_key
 STRIPE_TEST_CLOCKS=false
+```
+
+## Updating assets
+
+When updating this library, or installing your application, you will need to publish the latest js and css asset files to your application's public directory.
+
+### 1. Update the published asset files
+
+```bash
+php artisan vendor:publish --tag=public --force
 ```
 
 ## Usage
