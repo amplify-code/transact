@@ -2,9 +2,9 @@
 
 namespace AmplifyCode\Transact;
 
+use AmplifyCode\Transact\Providers\EventServiceProvider;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Routing\Router;
 
 class TransactServiceProvider extends ServiceProvider
 {
@@ -18,7 +18,7 @@ class TransactServiceProvider extends ServiceProvider
         __DIR__.'/../config/transact.php', 'transact'
     );
 
-    $this->app->register(\AmplifyCode\Transact\Providers\EventServiceProvider::class);
+    $this->app->register(EventServiceProvider::class);
 
   }
 

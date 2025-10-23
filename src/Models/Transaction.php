@@ -2,11 +2,8 @@
 
 namespace AmplifyCode\Transact\Models;
 
-use AmplifyCode\Transact\Contracts\iTransactable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Str;
 
 use AmplifyCode\Transact\Exceptions\WebhookException;
@@ -32,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * 
- * @property iTransactable $transactable
+ * @property Model $transactable
  */
 class Transaction extends Model
 {

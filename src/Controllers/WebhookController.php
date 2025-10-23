@@ -2,18 +2,10 @@
 
 namespace AmplifyCode\Transact\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\Controller;
-
-use Illuminate\Support\Facades\Log;
-
-// use AmplifyCode\Checkout\Models\Basket;
-// use AmplifyCode\Checkout\Models\Order;
+use AmplifyCode\Transact\Exceptions\WebhookException;
 use AmplifyCode\Transact\Models\Transaction;
 use AmplifyCode\Transact\Models\Event;
+use Exception;
 
 /**
  * TODO: BIG ONE
@@ -32,7 +24,7 @@ use AmplifyCode\Transact\Models\Event;
  *  - Like all the fee stuff below... farm that off for an event running later. It's not needed immediately.
  * 
  */
-class WebhookController extends Controller
+class WebhookController
 {
 
     public function stripe() {
