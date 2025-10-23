@@ -2,18 +2,10 @@
 
 namespace AmplifyCode\Transact\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\Controller;
-
-use Illuminate\Support\Facades\Log;
-
-// use AmplifyCode\Checkout\Models\Basket;
-// use AmplifyCode\Checkout\Models\Order;
+use AmplifyCode\Transact\Exceptions\WebhookException;
 use AmplifyCode\Transact\Models\Transaction;
 use AmplifyCode\Transact\Models\Event;
+use Exception;
 
 /**
  * TODO: BIG ONE
@@ -32,29 +24,30 @@ use AmplifyCode\Transact\Models\Event;
  *  - Like all the fee stuff below... farm that off for an event running later. It's not needed immediately.
  * 
  */
-class WebhookController extends Controller
+class WebhookController
 {
 
-    public function stripe() {
+    public function stripe(): void
+    {
 
         echo 'STRIPE WEBHOOK CALLED';
 
         // read incoming webhook data 
         $webhookContent = "";
-        
-        $webhook = fopen('php://input' , 'rb');
+
+        $webhook = fopen('php://input', 'rb');
         while (!feof($webhook)) {
             $webhookContent .= fread($webhook, 4096);
         }
         fclose($webhook);
-         
+
         $event = json_decode($webhookContent);
         // process the event:
 
         Event::log($event);
-        
-         
-        if($event->type == 'payment_intent.succeeded') {
+
+
+        if ($event->type == 'payment_intent.succeeded') {
 
             // get the basket id from the posted data
             $meta = $event->data->object->metadata;
@@ -63,15 +56,15 @@ class WebhookController extends Controller
             $fees = 0;
             $nett = 0;
             $paid_at = null;
-            
+
             // callback to Stripe to get fees / amounts
             try {
 
                 $secret = config('transact.stripe_secret_key');
-  
+
                 $stripe = new \Stripe\StripeClient(
                     $secret
-                     );
+                );
 
                 // Change to get to fees - updated for latest API (but also bwd compat).
                 $charge = $stripe->charges->retrieve(
@@ -82,42 +75,39 @@ class WebhookController extends Controller
                     $charge->balance_transaction
                 );
 
-  
+
                 $amount = $bt->amount / 100;
                 $fees = $bt->fee / 100;
                 $nett = $bt->net / 100;
 
 
-                if(isset($event->data->object->invoice)) {
+                if (isset($event->data->object->invoice)) {
                     $inv = $stripe->invoices->retrieve(
                         $event->data->object->invoice,
                         []
                     );
-                   
+
                     // Log::debug($inv->lines->data[0]->metadata->transaction_id);
                     $meta = $inv->lines->data[0]->metadata;
-                    $transaction_id = $inv->lines->data[0]->metadata->transaction_id;
-                    $paid_at = $inv->status_transitions->paid_at;
+                    $transaction_id = $inv->lines->data[0]->metadata['transaction_id'];
+                    $paid_at = $inv->status_transitions['paid_at'];
                 } else {
                     $meta = $meta;
                     if (isset($meta->transaction_id)) {
                         $transaction_id = $meta->transaction_id;
                     }
                 }
-    
-              } catch (Exception $e) {
+            } catch (Exception $e) {
                 throw new WebhookException('Error requesting Stripe data: ' . $e->getMessage());
                 //   \Log::error($e->getMessage());
-              }
+            }
 
             $reference = $event->data->object->id;
-            
-            if(isset($meta->transaction_id) && $transaction_id = $meta->transaction_id) {
+
+            if (isset($meta->transaction_id) && $transaction_id = $meta->transaction_id) {
 
                 // Legacy Code (transaction created ahead of time)
                 $t = Transaction::getUnpaidForUUID($transaction_id, $reference);
-               
-
             } else {
 
                 // New Code
@@ -126,20 +116,16 @@ class WebhookController extends Controller
                     'transactable_type' => $meta->model,
                     'transactable_id' => $meta->model_id,
                 ]);
-                
-                $t->save();
 
+                $t->save();
             }
 
             $t->markPaid($amount, $fees, $reference, $webhookContent, $paid_at);
-            
 
-            
+
+
             // \AmplifyCode\Transact\Events\PaymentIntentSucceeded::dispatch($event);
 
         }
-
     }
-  
-
 }

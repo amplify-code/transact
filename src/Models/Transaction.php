@@ -2,61 +2,82 @@
 
 namespace AmplifyCode\Transact\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use AmplifyCode\Transact\Contracts\iSubscribable;
+use AmplifyCode\Transact\Contracts\iTransactable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Str;
 
 use AmplifyCode\Transact\Exceptions\WebhookException;
-
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
+ * AmplifyCode\Transact\Models\Transaction
  * A model to represent a confirmed order.
+ * 
+ * @property integer $id
+ * @property string $transactable_type
+ * @property integer $transactable_id
+ * @property string $uuid
+ * @property string $provider
+ * @property boolean $is_recurring
+ * @property float $amount
+ * @property float $fees
+ * @property float $nett
+ * @property Carbon|null $paid_at
+ * @property boolean $failed
+ * @property string|null $failure_reason
+ * @property string $reference
+ * @property string $data
+ * @property Carbon $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property Model|iTransactable|iSubscribable $transactable
  */
 class Transaction extends Model
 {
-    use HasFactory;
-    
+
     /*
     * Uses a global scope to ensure we never include un-completed orders (baskets) when requesting orders
     */
-    public $table = "transact_transactions"; 
-   
+    public $table = "transact_transactions";
+
     public $fillable = ['transactable_type', 'transactable_id', 'provider', 'reference', 'paid_at', 'is_recurring', 'uuid', 'amount', 'data', 'failed', 'failure_reason'];
 
     public $casts = [
         'paid_at' => 'datetime'
     ];
 
-    protected static function booted() {
+    protected static function booted()
+    {
 
-        static::saving(function($model) {
-            if(!$model->uuid) {
+        static::saving(function ($model) {
+            if (!$model->uuid) {
                 $model->uuid = Str::uuid();
             }
         });
-
     }
 
-
-    public function transactable() {
+    /**
+     * @return MorphTo<Model, $this>
+     */
+    public function transactable(): MorphTo
+    {
         return $this->morphTo();
     }
 
 
-    public function getLast4Attribute() {
-       
+    public function getLast4Attribute(): string
+    {
+
         return json_decode($this->data)->data->object->charges->data[0]->payment_method_details->card->last4;
-    
     }
 
     /**
      * Whether the transaction has been completed / paid
-     * @return [type]
      */
-    public function getIsPaidAttribute() {
+    public function getIsPaidAttribute(): bool
+    {
         return !is_null($this->paid_at);
     }
 
@@ -68,19 +89,18 @@ class Transaction extends Model
      * @param mixed $fees
      * @param mixed $reference
      * @param mixed $data
-     * 
-     * @return [type]
      */
-    public function markPaid($amount, $fees, $reference, $data, $paid_at=null) {
+    public function markPaid($amount, $fees, $reference, $data, mixed $paid_at = null): bool
+    {
         if (!$this->is_paid) {
-            
+
             $this->amount = $amount;
             $this->fees = $fees;
             $this->nett = $amount - $fees;
             $this->reference = $reference;
             $this->data = $data;
-            
-            $this->paid_at = new \Carbon\Carbon($paid_at);
+
+            $this->paid_at = new Carbon($paid_at);
 
             $this->save();
 
@@ -91,7 +111,7 @@ class Transaction extends Model
             // fire off a call to the transactable model so they can perform the required logic.
             // - Is this a method call? or an event?
 
-           
+
 
         } else {
             return false;
@@ -99,28 +119,27 @@ class Transaction extends Model
     }
 
 
-   /**
-    * Returns an unpaid transaction, based on the uuid provided.
-    *  - If the transaction is found, but already paid, this checks if a recurring payment is expected
-    *  - If so, a new Txn is created, with a new UUID, based on the original Txn, and the new one is returned.
-    * 
-    * @param mixed $uuid
-    * 
-    * @return [type]
-    */
-    static function getUnpaidForUUID($uuid, $reference) {
+    /**
+     * Returns an unpaid transaction, based on the uuid provided.
+     *  - If the transaction is found, but already paid, this checks if a recurring payment is expected
+     *  - If so, a new Txn is created, with a new UUID, based on the original Txn, and the new one is returned.
+     * 
+     * @param mixed $uuid
+     */
+    static function getUnpaidForUUID($uuid, string $reference): self
+    {
 
-        $t = Transaction::where('uuid', $uuid)->first();
+        $t = Transaction::query()->where('uuid', $uuid)->first();
 
-        if(!$t) {
+        if (!$t) {
             throw new WebhookException('Transaction ' . $uuid . ' not found');
         }
 
-        if($t->is_paid) {
+        if ($t->is_paid) {
 
             // if it's paid, check if a recurring payment is expected 
             // before throwing a wobb... um, exception.
-            if($t->is_recurring && $t->reference != $reference) {
+            if ($t->is_recurring && $t->reference != $reference) {
 
                 // ok - expected to recur, and the incoming data has a new reference
                 // We can safely assume it's a new payment.
@@ -135,25 +154,21 @@ class Transaction extends Model
                     'data',
                 ]);
                 $t->save();
-
             } else {
-                throw new WebhookException('Transaction ' . $meta->transaction_id . ' already marked paid');
+                throw new WebhookException('Transaction ' . $uuid . ' already marked paid');
             }
-
-
         }
 
         return $t;
     }
 
-    public function getStatusAttribute() {
+    public function getStatusAttribute(): string
+    {
 
         if (!is_null($this->paid_at)) {
             return 'paid';
         }
-        
-        return 'unpaid'; 
-    }
-   
 
+        return 'unpaid';
+    }
 }

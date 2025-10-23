@@ -2,30 +2,23 @@
 
 namespace AmplifyCode\Transact\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 
-class PaymentIntentSucceeded 
+class PaymentIntentSucceeded
 {
-   
-    use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $data;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($data)
-    {   
-        $this->data = $data;
+    public function __construct(public mixed $data)
+    {
+        //
     }
-
 }

@@ -14,12 +14,11 @@ class AddFailureColumns extends Migration
     public function up()
     {
 
-       
-        Schema::table("transact_transactions", function(Blueprint $table) {
+
+        Schema::table("transact_transactions", function (Blueprint $table) {
             $table->boolean('failed')->index()->default(0)->after('paid_at');
             $table->string('failure_reason')->nullable()->after('failed');
         });
-
     }
 
     /**
@@ -30,10 +29,9 @@ class AddFailureColumns extends Migration
     public function down()
     {
 
-        Schema::table("transact_transactions", function(Blueprint $table) {
+        Schema::table("transact_transactions", function (Blueprint $table) {
             $table->dropColumn('failed');
             $table->dropColumn('failure_reason');
         });
-       
     }
 }

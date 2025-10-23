@@ -17,6 +17,4 @@ class EventServiceProvider extends ServiceProvider
             PaymentIntentSucceededListener::class,
         ],
     ];
-
-  
 }

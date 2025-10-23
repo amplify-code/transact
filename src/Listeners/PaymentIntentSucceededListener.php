@@ -3,13 +3,9 @@
 namespace AmplifyCode\Transact\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Notification;
-
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
 
 use AmplifyCode\Transact\Events\PaymentIntentSucceeded;
+use Exception;
 
 class PaymentIntentSucceededListener implements ShouldQueue
 {
@@ -23,16 +19,13 @@ class PaymentIntentSucceededListener implements ShouldQueue
         //
     }
 
-     /**
+    /**
      * Handle the event.
      *
      */
-    public function handle(PaymentIntentSucceeded $event) {  
+    public function handle(PaymentIntentSucceeded $event): void
+    {
 
         throw new Exception('Just to see what data hits the logs...');
-
     }
-
-
-  
 }
