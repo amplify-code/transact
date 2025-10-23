@@ -19,7 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $event
  * @property string $data
  * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property Carbon|null $updated_at
  */
 class Event extends Model
 {

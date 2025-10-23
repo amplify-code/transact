@@ -2,6 +2,8 @@
 
 namespace AmplifyCode\Transact\Models;
 
+use AmplifyCode\Transact\Contracts\iSubscribable;
+use AmplifyCode\Transact\Contracts\iTransactable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -23,13 +25,15 @@ use Illuminate\Support\Carbon;
  * @property float $amount
  * @property float $fees
  * @property float $nett
- * @property Carbon $paid_at
+ * @property Carbon|null $paid_at
+ * @property boolean $failed
+ * @property string|null $failure_reason
  * @property string $reference
  * @property string $data
  * @property Carbon $created_at
- * @property Carbon $updated_at
+ * @property Carbon|null $updated_at
  * 
- * @property Model $transactable
+ * @property Model|iTransactable|iSubscribable $transactable
  */
 class Transaction extends Model
 {
@@ -70,9 +74,8 @@ class Transaction extends Model
 
     /**
      * Whether the transaction has been completed / paid
-     * @return [type]
      */
-    public function getIsPaidAttribute() {
+    public function getIsPaidAttribute(): bool {
         return !is_null($this->paid_at);
     }
 
@@ -84,8 +87,6 @@ class Transaction extends Model
      * @param mixed $fees
      * @param mixed $reference
      * @param mixed $data
-     * 
-     * @return [type]
      */
     public function markPaid($amount, $fees, $reference, $data, $paid_at=null) {
         if (!$this->is_paid) {
@@ -96,7 +97,7 @@ class Transaction extends Model
             $this->reference = $reference;
             $this->data = $data;
             
-            $this->paid_at = new \Carbon\Carbon($paid_at);
+            $this->paid_at = new Carbon($paid_at);
 
             $this->save();
 
@@ -121,8 +122,6 @@ class Transaction extends Model
     *  - If so, a new Txn is created, with a new UUID, based on the original Txn, and the new one is returned.
     * 
     * @param mixed $uuid
-    * 
-    * @return [type]
     */
     static function getUnpaidForUUID($uuid, $reference) {
 
@@ -153,7 +152,7 @@ class Transaction extends Model
                 $t->save();
 
             } else {
-                throw new WebhookException('Transaction ' . $meta->transaction_id . ' already marked paid');
+                throw new WebhookException('Transaction ' . $uuid . ' already marked paid');
             }
 
 

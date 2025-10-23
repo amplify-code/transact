@@ -88,8 +88,8 @@ class WebhookController
                    
                     // Log::debug($inv->lines->data[0]->metadata->transaction_id);
                     $meta = $inv->lines->data[0]->metadata;
-                    $transaction_id = $inv->lines->data[0]->metadata->transaction_id;
-                    $paid_at = $inv->status_transitions->paid_at;
+                    $transaction_id = $inv->lines->data[0]->metadata['transaction_id'];
+                    $paid_at = $inv->status_transitions['paid_at'];
                 } else {
                     $meta = $meta;
                     if (isset($meta->transaction_id)) {

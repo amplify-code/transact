@@ -9,10 +9,11 @@ use AmplifyCode\Transact\Contracts\iSubscribable;
 use Illuminate\Http\JsonResponse;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 
 class Transact {
 
-    static function pay(iTransactable $model, $paymentMethod=null) {
+    static function pay(Model|iTransactable $model, $paymentMethod=null) {
 
         try { 
 
@@ -20,7 +21,7 @@ class Transact {
             
         $t = Transaction::create([
                 'transactable_type' => get_class($model),
-                'transactable_id' => $model->id
+                'transactable_id' => $model->getKey()
         ]);
         $t->transactable()->associate($model);
         $t->save();
@@ -95,14 +96,14 @@ class Transact {
 
 
     // setup - creates a setup intent
-    static function setup(iSubscribable $model, $paymentMethod=null) {
+    static function setup(Model|iSubscribable $model, $paymentMethod=null) {
 
         try {
 
             // find or create Transaction
             $t = Transaction::firstOrCreate([
                 'transactable_type' => get_class($model),
-                'transactable_id' => $model->id
+                'transactable_id' => $model->getKey()
             ], [
                 'is_recurring' => 1, 
             ]);
@@ -203,7 +204,7 @@ class Transact {
             $si = $stripe->setupIntents->retrieve($setup_intent);
 
 
-            $t = Transaction::where('uuid', $si->metadata->transaction_id)->first();
+            $t = Transaction::query()->where('uuid', $si->metadata['transaction_id'])->first();
             // get the model
             $model = $t->transactable;
 
@@ -251,12 +252,12 @@ class Transact {
 
 
     // old method, used a basic Stripe Subscription
-    static function subscribeOld(iSubscribable $model, $paymentMethod) {
+    static function subscribeOld(Model|iSubscribable $model, $paymentMethod) {
 
         // find or create Transaction
-        $t = Transaction::firstOrCreate([
+        $t = Transaction::query()->firstOrCreate([
             'transactable_type' => get_class($model),
-            'transactable_id' => $model->id
+            'transactable_id' => $model->getKey()
        ], [
            'is_recurring' => 1, 
        ]);
@@ -313,7 +314,7 @@ class Transact {
         $payload = [
             'customer' => $customer->id,
             'items' => [
-                $model->getSubscriptionItems(),
+                $model->getSubscriptionItems(), // @phpstan-ignore method.notFound
             ],
             'metadata' => [
                 'transaction_id' => $t->uuid
