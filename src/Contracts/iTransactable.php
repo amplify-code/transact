@@ -2,12 +2,12 @@
 
 namespace AmplifyCode\Transact\Contracts;
 
-interface iTransactable {
+interface iTransactable
+{
 
-    public function getTransactionAmount():float;
+    public function getTransactionAmount(): float;
 
-    public function getTransactionDescription():?string;
+    public function getTransactionDescription(): ?string;
 
     public function onTransactionComplete(): void;
-
 }

@@ -19,16 +19,13 @@ class PaymentIntentSucceededListener implements ShouldQueue
         //
     }
 
-     /**
+    /**
      * Handle the event.
      *
      */
-    public function handle(PaymentIntentSucceeded $event): void {  
+    public function handle(PaymentIntentSucceeded $event): void
+    {
 
         throw new Exception('Just to see what data hits the logs...');
-
     }
-
-
-  
 }

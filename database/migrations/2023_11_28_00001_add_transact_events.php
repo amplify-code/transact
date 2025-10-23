@@ -14,13 +14,12 @@ class AddTransactEvents extends Migration
     public function up()
     {
 
-        Schema::create("transact_events", function(Blueprint $table) {
+        Schema::create("transact_events", function (Blueprint $table) {
             $table->id();
             $table->string('event')->index();
             $table->text('data');
             $table->timestamps();
         });
-
     }
 
     /**
@@ -32,6 +31,5 @@ class AddTransactEvents extends Migration
     {
 
         Schema::drop('transact_events');
-       
     }
 }

@@ -11,14 +11,16 @@ use AmplifyCode\Transact\Models\Transaction;
  * 
  * @phpstan-ignore trait.unused
  */
-trait Transactable {
+trait Transactable
+{
 
-    public function transaction() {
+    public function transaction()
+    {
         return $this->morphMany(Transaction::class, 'transactable')->latest();
     }
 
-    public function transactions() {
+    public function transactions()
+    {
         return $this->morphMany(Transaction::class, 'transactable');
     }
-   
 }

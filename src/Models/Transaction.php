@@ -36,46 +36,48 @@ use Illuminate\Support\Carbon;
  */
 class Transaction extends Model
 {
-    
+
     /*
     * Uses a global scope to ensure we never include un-completed orders (baskets) when requesting orders
     */
-    public $table = "transact_transactions"; 
-   
+    public $table = "transact_transactions";
+
     public $fillable = ['transactable_type', 'transactable_id', 'provider', 'reference', 'paid_at', 'is_recurring', 'uuid', 'amount', 'data', 'failed', 'failure_reason'];
 
     public $casts = [
         'paid_at' => 'datetime'
     ];
 
-    protected static function booted() {
+    protected static function booted()
+    {
 
-        static::saving(function($model) {
-            if(!$model->uuid) {
+        static::saving(function ($model) {
+            if (!$model->uuid) {
                 $model->uuid = Str::uuid();
             }
         });
-
     }
 
     /**
      * @return MorphTo<Model, $this>
      */
-    public function transactable(): MorphTo {
+    public function transactable(): MorphTo
+    {
         return $this->morphTo();
     }
 
 
-    public function getLast4Attribute(): string {
-       
+    public function getLast4Attribute(): string
+    {
+
         return json_decode($this->data)->data->object->charges->data[0]->payment_method_details->card->last4;
-    
     }
 
     /**
      * Whether the transaction has been completed / paid
      */
-    public function getIsPaidAttribute(): bool {
+    public function getIsPaidAttribute(): bool
+    {
         return !is_null($this->paid_at);
     }
 
@@ -88,15 +90,16 @@ class Transaction extends Model
      * @param mixed $reference
      * @param mixed $data
      */
-    public function markPaid($amount, $fees, $reference, $data, mixed $paid_at=null): bool {
+    public function markPaid($amount, $fees, $reference, $data, mixed $paid_at = null): bool
+    {
         if (!$this->is_paid) {
-            
+
             $this->amount = $amount;
             $this->fees = $fees;
             $this->nett = $amount - $fees;
             $this->reference = $reference;
             $this->data = $data;
-            
+
             $this->paid_at = new Carbon($paid_at);
 
             $this->save();
@@ -108,7 +111,7 @@ class Transaction extends Model
             // fire off a call to the transactable model so they can perform the required logic.
             // - Is this a method call? or an event?
 
-           
+
 
         } else {
             return false;
@@ -116,26 +119,27 @@ class Transaction extends Model
     }
 
 
-   /**
-    * Returns an unpaid transaction, based on the uuid provided.
-    *  - If the transaction is found, but already paid, this checks if a recurring payment is expected
-    *  - If so, a new Txn is created, with a new UUID, based on the original Txn, and the new one is returned.
-    * 
-    * @param mixed $uuid
-    */
-    static function getUnpaidForUUID($uuid, string $reference): self {
+    /**
+     * Returns an unpaid transaction, based on the uuid provided.
+     *  - If the transaction is found, but already paid, this checks if a recurring payment is expected
+     *  - If so, a new Txn is created, with a new UUID, based on the original Txn, and the new one is returned.
+     * 
+     * @param mixed $uuid
+     */
+    static function getUnpaidForUUID($uuid, string $reference): self
+    {
 
         $t = Transaction::query()->where('uuid', $uuid)->first();
 
-        if(!$t) {
+        if (!$t) {
             throw new WebhookException('Transaction ' . $uuid . ' not found');
         }
 
-        if($t->is_paid) {
+        if ($t->is_paid) {
 
             // if it's paid, check if a recurring payment is expected 
             // before throwing a wobb... um, exception.
-            if($t->is_recurring && $t->reference != $reference) {
+            if ($t->is_recurring && $t->reference != $reference) {
 
                 // ok - expected to recur, and the incoming data has a new reference
                 // We can safely assume it's a new payment.
@@ -150,25 +154,21 @@ class Transaction extends Model
                     'data',
                 ]);
                 $t->save();
-
             } else {
                 throw new WebhookException('Transaction ' . $uuid . ' already marked paid');
             }
-
-
         }
 
         return $t;
     }
 
-    public function getStatusAttribute(): string {
+    public function getStatusAttribute(): string
+    {
 
         if (!is_null($this->paid_at)) {
             return 'paid';
         }
-        
-        return 'unpaid'; 
-    }
-   
 
+        return 'unpaid';
+    }
 }

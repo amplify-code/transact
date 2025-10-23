@@ -30,23 +30,22 @@ class StripeUI extends Component
      * 
      * @return void
      */
-    public function __construct(public string $id="stripe-ui", public string $buttonText="Pay Now", public ?string $cssSrc=null, ?Arrayable $style=null)
+    public function __construct(public string $id = "stripe-ui", public string $buttonText = "Pay Now", public ?string $cssSrc = null, ?Arrayable $style = null)
     {
 
-        if($this->cssSrc === null) {
+        if ($this->cssSrc === null) {
             $this->cssSrc = config('transact.cssSrc');
         }
-        
+
 
         /** @var array<string, mixed> */
         $configStyle = config('transact.style');
         $styleCollection = collect($configStyle);
 
-        if(!is_null($style)) {
-           $styleCollection = $styleCollection->merge($style);
+        if (!is_null($style)) {
+            $styleCollection = $styleCollection->merge($style);
         }
         $this->style = $styleCollection->toArray();
-        
     }
 
     /**
@@ -58,5 +57,4 @@ class StripeUI extends Component
     {
         return view('transact::stripe.ui');
     }
-    
 }

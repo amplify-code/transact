@@ -3,10 +3,4 @@
 namespace AmplifyCode\Transact;
 
 
-class TransactionProcessor {
-
-
-    
-
-
-}
+class TransactionProcessor {}

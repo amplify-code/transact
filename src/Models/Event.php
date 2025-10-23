@@ -18,23 +18,21 @@ use Illuminate\Support\Carbon;
  */
 class Event extends Model
 {
-    
+
     /*
     * Uses a global scope to ensure we never include un-completed orders (baskets) when requesting orders
     */
-    public $table = "transact_events"; 
-   
+    public $table = "transact_events";
+
     public $fillable = ['event', 'data'];
 
 
-    public static function log(mixed $data): void {
+    public static function log(mixed $data): void
+    {
 
         $event = Event::create([
             'event' => $data->type,
             'data' => json_encode($data)
         ]);
-
     }
-    
-
 }

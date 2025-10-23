@@ -7,9 +7,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 
-class PaymentIntentSucceeded 
+class PaymentIntentSucceeded
 {
-   
+
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
@@ -18,8 +18,7 @@ class PaymentIntentSucceeded
      * @return void
      */
     public function __construct(public mixed $data)
-    {   
+    {
         //
     }
-
 }
