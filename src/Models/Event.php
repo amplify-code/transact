@@ -9,10 +9,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 use AmplifyCode\Transact\Exceptions\WebhookException;
-
+use Illuminate\Support\Carbon;
 
 /**
+ * AmplifyCode\Transact\Models\Event
  * A model to represent a wehook event from Stripe
+ * 
+ * @property integer $id
+ * @property string $event
+ * @property string $data
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class Event extends Model
 {

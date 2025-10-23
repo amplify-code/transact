@@ -2,6 +2,7 @@
 
 namespace AmplifyCode\Transact\Models;
 
+use AmplifyCode\Transact\Contracts\iTransactable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,10 +11,28 @@ use Illuminate\Support\Str;
 
 use AmplifyCode\Transact\Exceptions\WebhookException;
 
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 
 /**
+ * AmplifyCode\Transact\Models\Transaction
  * A model to represent a confirmed order.
+ * 
+ * @property integer $id
+ * @property string $transactable_type
+ * @property integer $transactable_id
+ * @property string $uuid
+ * @property string $provider
+ * @property boolean $is_recurring
+ * @property float $amount
+ * @property float $fees
+ * @property float $nett
+ * @property Carbon $paid_at
+ * @property string $reference
+ * @property string $data
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * 
+ * @property iTransactable $transactable
  */
 class Transaction extends Model
 {
