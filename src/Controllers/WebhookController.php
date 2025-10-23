@@ -88,7 +88,7 @@ class WebhookController extends Controller
                 $nett = $bt->net / 100;
 
 
-                if($event->data->object->invoice) {
+                if(isset($event->data->object->invoice)) {
                     $inv = $stripe->invoices->retrieve(
                         $event->data->object->invoice,
                         []
@@ -100,7 +100,9 @@ class WebhookController extends Controller
                     $paid_at = $inv->status_transitions->paid_at;
                 } else {
                     $meta = $meta;
-                    $transaction_id = $meta->transaction_id;
+                    if (isset($meta->transaction_id)) {
+                        $transaction_id = $meta->transaction_id;
+                    }
                 }
     
               } catch (Exception $e) {
@@ -110,7 +112,7 @@ class WebhookController extends Controller
 
             $reference = $event->data->object->id;
             
-            if($transaction_id = $meta->transaction_id) {
+            if(isset($meta->transaction_id) && $transaction_id = $meta->transaction_id) {
 
                 // Legacy Code (transaction created ahead of time)
                 $t = Transaction::getUnpaidForUUID($transaction_id, $reference);
