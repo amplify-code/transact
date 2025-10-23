@@ -27,7 +27,7 @@ use Exception;
 class WebhookController
 {
 
-    public function stripe() {
+    public function stripe(): void {
 
         echo 'STRIPE WEBHOOK CALLED';
 

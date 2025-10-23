@@ -2,13 +2,8 @@
 
 namespace AmplifyCode\Transact\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth; 
-use Illuminate\Support\Str;
 
-use AmplifyCode\Transact\Exceptions\WebhookException;
 use Illuminate\Support\Carbon;
 
 /**
@@ -23,7 +18,6 @@ use Illuminate\Support\Carbon;
  */
 class Event extends Model
 {
-    use HasFactory;
     
     /*
     * Uses a global scope to ensure we never include un-completed orders (baskets) when requesting orders
@@ -33,7 +27,7 @@ class Event extends Model
     public $fillable = ['event', 'data'];
 
 
-    public static function log($data) {
+    public static function log(mixed $data): void {
 
         $event = Event::create([
             'event' => $data->type,

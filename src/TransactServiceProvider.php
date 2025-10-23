@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Blade;
 
 class TransactServiceProvider extends ServiceProvider
 {
-  public function register()
+  public function register(): void
   {
     //
 
@@ -22,7 +22,7 @@ class TransactServiceProvider extends ServiceProvider
 
   }
 
-  public function boot()
+  public function boot(): void
   {
 
     $this->loadViewsFrom(__DIR__.'/../resources/views', 'transact');
@@ -41,7 +41,7 @@ class TransactServiceProvider extends ServiceProvider
   
 
   // register the components
-  public function bootComponents() {
+  public function bootComponents(): void {
 
         Blade::component('transact-stripe-ui', 'AmplifyCode\Transact\Components\StripeUI');
 
@@ -54,7 +54,7 @@ class TransactServiceProvider extends ServiceProvider
 
   
 
-    public function bootPublishes() {
+    public function bootPublishes(): void {
 
       $this->publishes([
         __DIR__.'/../assets' => public_path('vendor/ascent/transact'),

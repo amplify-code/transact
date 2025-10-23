@@ -8,6 +8,6 @@ interface iTransactable {
 
     public function getTransactionDescription():?string;
 
-    public function onTransactionComplete();
+    public function onTransactionComplete(): void;
 
 }

@@ -9,11 +9,16 @@ use AmplifyCode\Transact\Contracts\iSubscribable;
 use Illuminate\Http\JsonResponse;
 
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use Stripe\PaymentIntent;
+use Stripe\SetupIntent;
+use Stripe\SubscriptionSchedule;
 
 class Transact {
 
-    static function pay(Model|iTransactable $model, $paymentMethod=null) {
+    static function pay(Model|iTransactable $model, string $paymentMethod=null): PaymentIntent|null {
 
         try { 
 
@@ -82,13 +87,10 @@ class Transact {
 
             return $intent;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
-            // throw new \Exception($e->getMessage());
-            return new JsonResponse([
-                'status' => 'Error',
-                'message' => $e->getMessage(),
-            ], 500);
+            Log::error($e->getMessage());
+            return null;
 
         }
 
@@ -96,7 +98,7 @@ class Transact {
 
 
     // setup - creates a setup intent
-    static function setup(Model|iSubscribable $model, $paymentMethod=null) {
+    static function setup(Model|iSubscribable $model, string $paymentMethod=null): SetupIntent|null {
 
         try {
 
@@ -174,13 +176,10 @@ class Transact {
 
             return $setupIntent;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
-            // throw new \Exception($e->getMessage());
-            return new JsonResponse([
-                'status' => 'Error',
-                'message' => $e->getMessage(),
-            ], 500);
+            Log::error($e->getMessage());
+            return null;
 
         }
 
@@ -189,7 +188,7 @@ class Transact {
 
     // subscribe - starts a subscription schedule, allowing free periods etc.
     // called once the setup intent has been created.
-    static function subscribe($setup_intent) {
+    static function subscribe(string $setup_intent): SubscriptionSchedule|null {
 
         try {
 
@@ -237,12 +236,8 @@ class Transact {
             return $sched;
 
         } catch (\Exception $e) {
-
-            // throw new \Exception($e->getMessage());
-            return new JsonResponse([
-                'status' => 'Error',
-                'message' => $e->getMessage(),
-            ], 500);
+            Log::error($e->getMessage());
+            return null;
 
         }
 
@@ -252,7 +247,7 @@ class Transact {
 
 
     // old method, used a basic Stripe Subscription
-    static function subscribeOld(Model|iSubscribable $model, $paymentMethod) {
+    static function subscribeOld(Model|iSubscribable $model, string $paymentMethod):PaymentIntent|string|null {
 
         // find or create Transaction
         $t = Transaction::query()->firstOrCreate([
@@ -347,7 +342,7 @@ class Transact {
 
     }
 
-    static function calculateEndDate($model) {
+    static function calculateEndDate(iSubscribable $model): int|float|string|null {
 
         if($model->getIterations() > 0) {
 

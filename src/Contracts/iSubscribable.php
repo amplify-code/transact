@@ -25,14 +25,17 @@ interface iSubscribable {
 
     public function getIterations():int;
 
-    public function onSubscriptionCreated(SubscriptionSchedule $sched);
+    public function onSubscriptionCreated(SubscriptionSchedule $sched): void;
 
     // public function onSetupComplete();
 
-    public function onRecurringPayment();
+    public function onRecurringPayment(): void;
 
     // public function getSubscriptionItems():array;
 
+    /**
+     * @return array<int, mixed>
+     */
     public function getSubscriptionPhases():array;
     
 

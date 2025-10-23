@@ -4,12 +4,11 @@ namespace AmplifyCode\Transact\Models;
 
 use AmplifyCode\Transact\Contracts\iSubscribable;
 use AmplifyCode\Transact\Contracts\iTransactable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 use AmplifyCode\Transact\Exceptions\WebhookException;
-
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -37,7 +36,6 @@ use Illuminate\Support\Carbon;
  */
 class Transaction extends Model
 {
-    use HasFactory;
     
     /*
     * Uses a global scope to ensure we never include un-completed orders (baskets) when requesting orders
@@ -60,13 +58,15 @@ class Transaction extends Model
 
     }
 
-
-    public function transactable() {
+    /**
+     * @return MorphTo<Model, $this>
+     */
+    public function transactable(): MorphTo {
         return $this->morphTo();
     }
 
 
-    public function getLast4Attribute() {
+    public function getLast4Attribute(): string {
        
         return json_decode($this->data)->data->object->charges->data[0]->payment_method_details->card->last4;
     
@@ -88,7 +88,7 @@ class Transaction extends Model
      * @param mixed $reference
      * @param mixed $data
      */
-    public function markPaid($amount, $fees, $reference, $data, $paid_at=null) {
+    public function markPaid($amount, $fees, $reference, $data, mixed $paid_at=null): bool {
         if (!$this->is_paid) {
             
             $this->amount = $amount;
@@ -123,9 +123,9 @@ class Transaction extends Model
     * 
     * @param mixed $uuid
     */
-    static function getUnpaidForUUID($uuid, $reference) {
+    static function getUnpaidForUUID($uuid, string $reference): self {
 
-        $t = Transaction::where('uuid', $uuid)->first();
+        $t = Transaction::query()->where('uuid', $uuid)->first();
 
         if(!$t) {
             throw new WebhookException('Transaction ' . $uuid . ' not found');
@@ -161,7 +161,7 @@ class Transaction extends Model
         return $t;
     }
 
-    public function getStatusAttribute() {
+    public function getStatusAttribute(): string {
 
         if (!is_null($this->paid_at)) {
             return 'paid';

@@ -12,16 +12,14 @@ class PaymentIntentSucceeded
    
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $data;
-
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct(public mixed $data)
     {   
-        $this->data = $data;
+        //
     }
 
 }

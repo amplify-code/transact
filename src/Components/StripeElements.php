@@ -2,24 +2,22 @@
 
 namespace AmplifyCode\Transact\Components;
 
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\View\Component;
+use Stripe\PaymentIntent;
 
 class StripeElements extends Component
 {
 
+    public PaymentIntent $intent;
 
-    public $id = '';
-    public $buttonText;
-
-    public $transactable;
-    public $intent;
-
-    public $return;
-
-    public $cssSrc = null;
-
-    // the style array as defined at https://stripe.com/docs/js/appendix/style
-    // will be JSON encoded and passed to the javascript code when initialising the UI
+    /**
+     * @var array<string, mixed> $style
+     * 
+     * The style array as defined at https://stripe.com/docs/js/appendix/style
+     * will be JSON encoded and passed to the javascript code when initialising the UI
+     */
     public $style = [];
     // = [
     //    'base' => [
@@ -31,29 +29,25 @@ class StripeElements extends Component
 
     /**
      * Create a new component instance.
+     * 
+     * @param Arrayable<string, mixed> $style
      *
      * @return void
      */
-    public function __construct($transactable, $return='', $id="stripe-ui", $buttonText="Pay Now", $cssSrc=null, $style=null)
+    public function __construct(public Model $transactable, public string $return='', public string $id="stripe-ui", public string $buttonText="Pay Now", public ?string $cssSrc=null, ?Arrayable $style=null)
     {
-        //
-        $this->id = $id;
-        $this->buttonText = $buttonText;
 
-        if($transactable) {
-            $this->transactable = $transactable;
-            $this->intent = $transactable->getStripeIntent();
-        }
+        $this->intent = $transactable->getStripeIntent(); // @phpstan-ignore method.notFound
 
-        $this->return = $return;
 
-        if($cssSrc) {
-            $this->cssSrc = $cssSrc;
-        } else {
+        if($this->cssSrc === null) {
             $this->cssSrc = config('transact.cssSrc');
         }
         
-        $styleCollection = collect(config('transact.style'));
+
+        /** @var array<string, mixed> */
+        $configStyle = config('transact.style');
+        $styleCollection = collect($configStyle);
 
 
         if(!is_null($style)) {

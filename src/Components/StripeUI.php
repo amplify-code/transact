@@ -2,20 +2,19 @@
 
 namespace AmplifyCode\Transact\Components;
 
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Collection;
 use Illuminate\View\Component;
 
 class StripeUI extends Component
 {
-
-
-    public $id = '';
-    public $buttonText;
-
-    public $cssSrc = null;
-
-    // the style array as defined at https://stripe.com/docs/js/appendix/style
-    // will be JSON encoded and passed to the javascript code when initialising the UI
-    public $style = [];
+    /**
+     * @var array<string, mixed> $style
+     * 
+     * The style array as defined at https://stripe.com/docs/js/appendix/style
+     * will be JSON encoded and passed to the javascript code when initialising the UI
+     */
+    public array $style = [];
     // = [
     //    'base' => [
     //         'backgroundColor' => "#ffffff",
@@ -27,22 +26,21 @@ class StripeUI extends Component
     /**
      * Create a new component instance.
      *
+     * @param Arrayable<string, mixed> $style
+     * 
      * @return void
      */
-    public function __construct($id="stripe-ui", $buttonText="Pay Now", $cssSrc=null, $style=null)
+    public function __construct(public string $id="stripe-ui", public string $buttonText="Pay Now", public ?string $cssSrc=null, ?Arrayable $style=null)
     {
-        //
-        $this->id = $id;
-        $this->buttonText = $buttonText;
 
-        if($cssSrc) {
-            $this->cssSrc = $cssSrc;
-        } else {
+        if($this->cssSrc === null) {
             $this->cssSrc = config('transact.cssSrc');
         }
         
-        $styleCollection = collect(config('transact.style'));
 
+        /** @var array<string, mixed> */
+        $configStyle = config('transact.style');
+        $styleCollection = collect($configStyle);
 
         if(!is_null($style)) {
            $styleCollection = $styleCollection->merge($style);
