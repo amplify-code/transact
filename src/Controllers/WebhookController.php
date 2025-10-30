@@ -2,130 +2,51 @@
 
 namespace AmplifyCode\Transact\Controllers;
 
-use AmplifyCode\Transact\Exceptions\WebhookException;
-use AmplifyCode\Transact\Models\Transaction;
-use AmplifyCode\Transact\Models\Event;
-use Exception;
+use AmplifyCode\Transact\Handlers\StripeWebhooks\PaymentIntentSucceededHandler;
+use Illuminate\Http\Response;
+use Stripe\Event;
 
-/**
- * TODO: BIG ONE
- * 
- * Maybe this controller should just capture the data and store in the database
- *  - Fire off an event, rather than trying to process it in this code, just in case of error?
- * 
- * But, there might be problems where a user is waiting for a payment confirmation in real time. 
- *  - So do we save anything? If the event fails we still return an error...
- *  - But, we could (should!) trap the error and fire a WebHook failed message
- *  - If the event failed fully, we can at least re-run it in some way.
- * 
- * ----
- * Better option - some stuff happens immediately - simple confirmation etc
- *  - but then we fire off events to do what else is needed. 
- *  - Like all the fee stuff below... farm that off for an event running later. It's not needed immediately.
- * 
- */
 class WebhookController
 {
-
-    public function stripe(): void
+    public function __invoke(): Response
     {
+        $endpoint_secret = config('transact.stripe_webhook_secret');
 
-        echo 'STRIPE WEBHOOK CALLED';
+        $payload = @file_get_contents('php://input');
+        $event = null;
 
-        // read incoming webhook data 
-        $webhookContent = "";
-
-        $webhook = fopen('php://input', 'rb');
-        while (!feof($webhook)) {
-            $webhookContent .= fread($webhook, 4096);
+        try {
+            $event = Event::constructFrom(
+                json_decode($payload, true)
+            );
+        } catch (\UnexpectedValueException $e) {
+            return new Response('Invalid payload', 400);
         }
-        fclose($webhook);
 
-        $event = json_decode($webhookContent);
-        // process the event:
-
-        Event::log($event);
-
-
-        if ($event->type == 'payment_intent.succeeded') {
-
-            // get the basket id from the posted data
-            $meta = $event->data->object->metadata;
-
-            $amount = 0;
-            $fees = 0;
-            $nett = 0;
-            $paid_at = null;
-
-            // callback to Stripe to get fees / amounts
-            try {
-
-                $secret = config('transact.stripe_secret_key');
-
-                $stripe = new \Stripe\StripeClient(
-                    $secret
-                );
-
-                // Change to get to fees - updated for latest API (but also bwd compat).
-                $charge = $stripe->charges->retrieve(
-                    $event->data->object->latest_charge
-                );
-
-                $bt = $stripe->balanceTransactions->retrieve(
-                    $charge->balance_transaction
-                );
-
-
-                $amount = $bt->amount / 100;
-                $fees = $bt->fee / 100;
-                $nett = $bt->net / 100;
-
-
-                if (isset($event->data->object->invoice)) {
-                    $inv = $stripe->invoices->retrieve(
-                        $event->data->object->invoice,
-                        []
-                    );
-
-                    // Log::debug($inv->lines->data[0]->metadata->transaction_id);
-                    $meta = $inv->lines->data[0]->metadata;
-                    $transaction_id = $inv->lines->data[0]->metadata['transaction_id'];
-                    $paid_at = $inv->status_transitions['paid_at'];
-                } else {
-                    $meta = $meta;
-                    if (isset($meta->transaction_id)) {
-                        $transaction_id = $meta->transaction_id;
-                    }
-                }
-            } catch (Exception $e) {
-                throw new WebhookException('Error requesting Stripe data: ' . $e->getMessage());
-                //   \Log::error($e->getMessage());
-            }
-
-            $reference = $event->data->object->id;
-
-            if (isset($meta->transaction_id) && $transaction_id = $meta->transaction_id) {
-
-                // Legacy Code (transaction created ahead of time)
-                $t = Transaction::getUnpaidForUUID($transaction_id, $reference);
-            } else {
-
-                // New Code
-                // Create a transacrion record when the webhook comes in
-                $t = Transaction::create([
-                    'transactable_type' => $meta->model,
-                    'transactable_id' => $meta->model_id,
-                ]);
-
-                $t->save();
-            }
-
-            $t->markPaid($amount, $fees, $reference, $webhookContent, $paid_at);
-
-
-
-            // \AmplifyCode\Transact\Events\PaymentIntentSucceeded::dispatch($event);
-
+        if ($endpoint_secret === null) {
+            return new Response('Webhook secret not set', 500);
         }
+
+        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+        try {
+            $event = \Stripe\Webhook::constructEvent(
+                $payload,
+                $sig_header,
+                $endpoint_secret
+            );
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            return new Response('Webhook error while validating signature.', 400);
+        }
+
+        // Handle the event
+        switch ($event->type) {
+            case 'payment_intent.succeeded':
+                (new PaymentIntentSucceededHandler($event, $payload))->handle();
+                break;
+            default:
+                return new Response('Received unknown event type ' . $event->type, 200);
+        }
+
+        return new Response('Webhook handled');
     }
 }

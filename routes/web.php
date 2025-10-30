@@ -17,7 +17,7 @@ Route::post('/transact/subscribe', function () {
     return Transact::subscribe(request()->setupIntent);
 });
 
-Route::post('/transact/stripe', [WebhookController::class, 'stripe']);
+Route::post('/transact/stripe', WebhookController::class);
 
 
 Route::middleware(['web'])->group(function () {
@@ -37,9 +37,3 @@ Route::middleware(['web'])->group(function () {
         // return $transaction->setFailed();
     });
 });
-
-
-
-
-/** legacy route - this is the URL format from the original checkout module */
-Route::post('/stripe/webhook', [WebhookController::class, 'stripe']);
