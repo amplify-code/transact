@@ -6,8 +6,9 @@ return [
      * Currently supports only Stripe, but need to wire up for PayPal etc too.
      */
     'payment_provider' => 'stripe',
-    'stripe_public_key' => env('STRIPE_PUBLIC', 'public_key'),
-    'stripe_secret_key' => env('STRIPE_SECRET', 'secret_key'),
+    'stripe_public_key' => env('STRIPE_PUBLIC'),
+    'stripe_secret_key' => env('STRIPE_SECRET'),
+    'stripe_webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     'stripe_test_clocks' => env('STRIPE_TEST_CLOCKS', false),
 
     /**
