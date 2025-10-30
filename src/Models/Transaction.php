@@ -92,30 +92,23 @@ class Transaction extends Model
      */
     public function markPaid($amount, $fees, $reference, $data, mixed $paid_at = null): bool
     {
-        if (!$this->is_paid) {
-
-            $this->amount = $amount;
-            $this->fees = $fees;
-            $this->nett = $amount - $fees;
-            $this->reference = $reference;
-            $this->data = $data;
-
-            $this->paid_at = new Carbon($paid_at);
-
-            $this->save();
-
-            $this->transactable->onTransactionComplete();
-
-            return true;
-
-            // fire off a call to the transactable model so they can perform the required logic.
-            // - Is this a method call? or an event?
-
-
-
-        } else {
+        if ($this->is_paid) {
             return false;
         }
+
+        $this->amount = $amount;
+        $this->fees = $fees;
+        $this->nett = $amount - $fees;
+        $this->reference = $reference;
+        $this->data = $data;
+
+        $this->paid_at = new Carbon($paid_at);
+
+        $this->save();
+
+        $this->transactable->onTransactionComplete();
+
+        return true;
     }
 
 

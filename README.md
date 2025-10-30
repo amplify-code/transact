@@ -44,6 +44,7 @@ Add the following to your `.env` file:
 ```
 STRIPE_PUBLIC=your_stripe_public_key
 STRIPE_SECRET=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
 STRIPE_TEST_CLOCKS=false
 ```
 
