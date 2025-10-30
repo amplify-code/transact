@@ -20,7 +20,7 @@ class PaymentIntentSucceededHandler
         $paymentIntent = $this->event->data->object;
 
         if (!is_a($paymentIntent, PaymentIntent::class)) {
-            throw new Exception('Invalid event object type: '. $paymentIntent->class, 1);
+            throw new Exception('Invalid event object type: '. get_class($paymentIntent), 1);
         }
 
         // Get fees for transaction
@@ -64,6 +64,10 @@ class PaymentIntentSucceededHandler
                 $model = $subscriptionDetails->metadata->model;
                 $modelID = $subscriptionDetails->metadata->model_id;
             }
+        }
+
+        if (!isset($model) || !isset($modelID)) {
+            throw new Exception('Transactable model not found', 1);
         }
 
         $transaction = Transaction::query()->create([
