@@ -229,7 +229,7 @@ class Transact
 
             // dd($sched);
 
-            $model->onSubscriptionCreated($sched);
+            $model->onSubscriptionScheduleCreated($sched);
 
             return $sched;
         } catch (\Exception $e) {
