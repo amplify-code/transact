@@ -54,6 +54,12 @@ class StripeIntentService {
         } else {
             $secret = $subscription->pending_setup_intent;
             $intent = $client->setupIntents->retrieve($secret);
+            $intent = $client->setupIntents->update($intent->id, [
+                'metadata' => [
+                    'model' => get_class($model),
+                    'model_id' => $model->getKey(),
+                ]
+            ]);
             return $intent;
         }
     }

@@ -3,6 +3,7 @@
 namespace AmplifyCode\Transact\Controllers;
 
 use AmplifyCode\Transact\Handlers\StripeWebhooks\PaymentIntentSucceededHandler;
+use AmplifyCode\Transact\Handlers\StripeWebhooks\SetupIntentSucceededHandler;
 use Illuminate\Http\Response;
 use Stripe\Event;
 
@@ -42,6 +43,9 @@ class WebhookController
         switch ($event->type) {
             case 'payment_intent.succeeded':
                 (new PaymentIntentSucceededHandler($event, $payload))->handle();
+                break;
+            case 'setup_intent.succeeded':
+                (new SetupIntentSucceededHandler($event, $payload))->handle();
                 break;
             default:
                 return new Response('Received unknown event type ' . $event->type, 200);
