@@ -8,11 +8,12 @@ use AmplifyCode\Transact\Services\StripeIntentService;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\View\Component;
 use Stripe\PaymentIntent;
+use Stripe\SetupIntent;
 
 class StripeElements extends Component
 {
 
-    public PaymentIntent $intent;
+    public PaymentIntent|SetupIntent $intent;
 
     /**
      * @var array<string, mixed> $style
